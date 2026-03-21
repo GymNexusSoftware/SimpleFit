@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitness App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=27">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a0a0a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Fitness App">
+    <link id="app-apple-icon" rel="apple-touch-icon" href="logo.png">
+
+    <!-- Configurações base -->
+    <script src="config.js"></script>
+    <script>
+        // Aplicar configurações dinâmicas de estilo
+        document.addEventListener("DOMContentLoaded", function() {
+            if (typeof AppConfig !== 'undefined') {
+                document.title = AppConfig.appTitle;
+                const root = document.documentElement;
+                root.style.setProperty('--cfg-primary', AppConfig.theme.primary);
+                root.style.setProperty('--cfg-primary-hover', AppConfig.theme.primaryHover);
+                root.style.setProperty('--cfg-bg', AppConfig.theme.background);
+                if (AppConfig.heroPath) {
+                    root.style.setProperty('--cfg-hero', "url('" + AppConfig.heroPath + "')");
+                }
+                
+                const appleIcon = document.getElementById('app-apple-icon');
+                if (appleIcon && AppConfig.logoPath) appleIcon.href = AppConfig.logoPath;
+                
+                const logoImg = document.getElementById('app-logo-img');
+                if (logoImg && AppConfig.logoPath) logoImg.src = AppConfig.logoPath;
+                
+                const loginLogoImg = document.querySelector('.login-hero .logo img');
+                if (loginLogoImg && AppConfig.logoPath) loginLogoImg.src = AppConfig.logoPath;
+            }
+        });
+    </script>
+
+    <!-- Firebase SDKs (Versão Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
+    <!-- QR Code & Scanner Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+</head>
+
+<body>
+    <div id="login-screen" class="login-overlay"></div>
+
+    <div id="app" style="display: none; opacity: 0; transition: opacity 0.5s ease;">
+        <header class="glass-panel">
+            <div class="logo">
+                <img id="app-logo-img" src="logo.png" alt="App Logo">
+            </div>
+            <div class="user-profile" id="user-profile-header"></div>
+        </header>
+
+        <main>
+            <aside class="sidebar glass-panel" id="sidebar"></aside>
+
+            <section class="content-area" id="main-content">
+                <div class="loader">Carregando...</div>
+            </section>
+        </main>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="data.js"></script>
+    <script src="app.js?v=111"></script>
+</body>
+
+</html>
