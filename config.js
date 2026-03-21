@@ -8,11 +8,12 @@ const AppConfig = {
     heroPath: "hero1.png", // Imagem de fundo principal
     defaultAdminEmail: "admin@simplefit.com",
     
-    // Configurações de Cores (Minimalista Dark para combinar com o Logo)
+    // Configurações de Cores (Minimalista Preto e Branco)
     theme: {
-        primary: "#3f3f46",       // Cinzento escuro para botões/ícones para não chocar com o preto/branco
-        primaryHover: "#27272a",  // hover
-        background: "#000000"     // Fundo 100% Preto
+        primary: "#ffffff",       // Branco para contrastar com o fundo preto
+        primaryHover: "#e5e5e5",  // Branco levemente escurecido no hover
+        background: "#000000",    // Fundo 100% Preto
+        textOnPrimary: "#000000"  // Texto preto sobre o botão branco
     },
 
     // Configuração da Base de Dados (Firebase)

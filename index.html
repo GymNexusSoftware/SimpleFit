@@ -28,6 +28,9 @@
                 root.style.setProperty('--cfg-primary', AppConfig.theme.primary);
                 root.style.setProperty('--cfg-primary-hover', AppConfig.theme.primaryHover);
                 root.style.setProperty('--cfg-bg', AppConfig.theme.background);
+                if (AppConfig.theme.textOnPrimary) {
+                    root.style.setProperty('--cfg-text-on-primary', AppConfig.theme.textOnPrimary);
+                }
                 if (AppConfig.heroPath) {
                     root.style.setProperty('--cfg-hero', "url('" + AppConfig.heroPath + "')");
                 }

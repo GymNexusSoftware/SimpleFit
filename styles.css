@@ -1,25 +1,26 @@
-﻿@keyframes pulse {
+@keyframes pulse {
     0% {
         transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(145, 27, 43, 0.7);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
     }
 
     70% {
         transform: scale(1.02);
-        box-shadow: 0 0 0 10px rgba(145, 27, 43, 0);
+        box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
     }
 
     100% {
         transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(145, 27, 43, 0);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
     }
 }
 
 :root {
-    --primary: var(--cfg-primary, #911B2B);
-    --primary-hover: var(--cfg-primary-hover, #751421);
-    --secondary: #5c0f1a;
-    --accent: #c4a24d;
+    --primary: var(--cfg-primary, #ffffff);
+    --primary-hover: var(--cfg-primary-hover, #e5e5e5);
+    --text-on-primary: var(--cfg-text-on-primary, #ffffff);
+    --secondary: #333333;
+    --accent: #666666;
     --background: var(--cfg-bg, #0f1218);
     --surface: rgba(22, 27, 34, 0.75);
     --surface-border: rgba(255, 255, 255, 0.08);
@@ -28,7 +29,7 @@
     --success: #10b981;
     --danger: #ef4444;
     --glass: blur(12px);
-    --shadow: 0 8px 32px 0 rgba(145, 27, 43, 0.15);
+    --shadow: 0 8px 32px 0 rgba(255, 255, 255, 0.15);
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     color-scheme: dark;
@@ -301,7 +302,7 @@ h3 {
 
 .btn-primary {
     background: var(--primary);
-    color: #fff;
+    color: var(--text-on-primary);
 }
 
 .btn-secondary {
@@ -459,12 +460,12 @@ option {
     height: 64px;
     border-radius: 32px;
     background: var(--primary);
-    color: white;
+    color: var(--text-on-primary);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.8rem;
-    box-shadow: 0 12px 28px rgba(145, 27, 43, 0.45);
+    box-shadow: 0 12px 28px rgba(255, 255, 255, 0.45);
     z-index: 900;
     border: none;
     cursor: pointer;
@@ -613,7 +614,7 @@ option {
     outline: none;
     border-color: var(--primary);
     background: rgba(255, 255, 255, 0.1) !important;
-    box-shadow: 0 0 0 3px rgba(145, 27, 43, 0.2);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
 }
 
 #main-content label {
@@ -625,8 +626,8 @@ option {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(145, 27, 43, 0.08);
-    border: 1px solid rgba(145, 27, 43, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 20px;
     padding: 2px 12px;
     margin-top: 6px;
@@ -634,7 +635,7 @@ option {
 }
 
 .teacher-assign-tag:hover {
-    background: rgba(145, 27, 43, 0.15);
+    background: rgba(255, 255, 255, 0.15);
     border-color: var(--primary);
 }
 
@@ -852,12 +853,12 @@ option {
 }
 
 .nu-prot {
-    border-color: rgba(145, 27, 43, 0.4);
+    border-color: rgba(255, 255, 255, 0.4);
     color: #ff8080;
 }
 
 .nu-carb {
-    border-color: rgba(196, 162, 77, 0.4);
+    border-color: rgba(102, 102, 102, 0.4);
     color: #ffda7d;
 }
 
@@ -1104,7 +1105,7 @@ option {
 }
 
 .chat-thread-item.active {
-    background: rgba(145, 27, 43, 0.12);
+    background: rgba(255, 255, 255, 0.12);
     border-left: 4px solid var(--primary);
 }
 
@@ -1570,7 +1571,7 @@ option {
 }
 
 .number-circle {
-    background: rgba(145, 27, 43, 0.1);
+    background: rgba(255, 255, 255, 0.1);
     color: var(--primary);
     width: 24px;
     height: 24px;
@@ -1580,7 +1581,7 @@ option {
     justify-content: center;
     font-weight: 800;
     font-size: 0.85rem;
-    border: 1px solid rgba(145, 27, 43, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .plan-badge {
