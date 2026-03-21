@@ -1551,6 +1551,7 @@ Bons treinos!`;
     }
 
     renderExerciseListGrouped(searchQuery = '') {
+        const isAdmin = this.role === 'admin';
         const cats = this.state.exerciseCategories || ["Geral"];
         let filtered = this.state.exercises || [];
 
