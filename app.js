@@ -1658,7 +1658,13 @@ Bons treinos!`;
                 if (!Array.isArray(imported)) throw new Error("Formato inválido");
 
                 if (confirm(`Deseja importar ${imported.length} exercícios? Isso irá substituir a sua lista atual.`)) {
-                    this.state.exercises = imported;
+                    // Normalizar formato caso seja o base_exercicio antigo
+                    this.state.exercises = imported.map(ex => {
+                        ex.name = ex.name || ex.nome || "Exercício sem nome";
+                        ex.category = ex.category || "Geral";
+                        ex.videoUrl = ex.videoUrl || "";
+                        return ex;
+                    });
                     this.saveState();
                     this.renderContent();
                     alert('Base de exercícios importada com sucesso!');
