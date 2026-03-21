@@ -1077,9 +1077,7 @@ Bons treinos!`;
         if (this.role === 'admin') {
             navItems = [
                 { id: 'dashboard', icon: 'fa-shield-alt', label: 'Painel' },
-                { id: 'classes', icon: 'fa-calendar-alt', label: 'Aulas' },
                 { id: 'users', icon: 'fa-users-cog', label: 'Contas' },
-                { id: 'qr_manager', icon: 'fa-qrcode', label: 'Entradas' },
                 { id: 'exercises', icon: 'fa-play-circle', label: 'Exercícios' },
                 { id: 'foods', icon: 'fa-apple-alt', label: 'Alimentos' },
                 { id: 'profile', icon: 'fa-user-circle', label: 'Perfil' }
@@ -1087,7 +1085,6 @@ Bons treinos!`;
         } else if (this.role === 'teacher') {
             navItems = [
                 { id: 'dashboard', icon: 'fa-chart-pie', label: 'Inicio' },
-                { id: 'classes', icon: 'fa-calendar-alt', label: 'Aulas' },
                 { id: 'clients', icon: 'fa-user-friends', label: 'Alunos' },
                 { id: 'chat', icon: 'fa-comment-alt', label: 'Msgs' },
                 { id: 'exercises', icon: 'fa-play-circle', label: 'Exercícios' },
@@ -1097,7 +1094,6 @@ Bons treinos!`;
         } else {
             navItems = [
                 { id: 'dashboard', icon: 'fa-home', label: 'Home' },
-                { id: 'classes', icon: 'fa-calendar-alt', label: 'Aulas' },
                 { id: 'training', icon: 'fa-dumbbell', label: 'Treino' },
                 { id: 'meal', icon: 'fa-apple-alt', label: 'Dieta' },
                 { id: 'evaluation', icon: 'fa-chart-line', label: 'Aval.' },
@@ -1127,18 +1123,14 @@ Bons treinos!`;
         if (this.role === 'admin') {
             navItems = [
                 { id: 'dashboard', icon: 'fa-shield-alt', label: 'Painel Admin' },
-                { id: 'classes', icon: 'fa-calendar-alt', label: 'Horário & Aulas' },
                 { id: 'users', icon: 'fa-users-cog', label: 'Gestão Contas' },
-                { id: 'qr_manager', icon: 'fa-qrcode', label: 'Gestão de Entradas' },
                 { id: 'exercises', icon: 'fa-play-circle', label: 'Biblioteca Exercícios' },
                 { id: 'foods', icon: 'fa-apple-alt', label: 'Base de Alimentos' },
-                { id: 'all-clients', icon: 'fa-search', label: 'Acesso Global' },
                 { id: 'profile', icon: 'fa-user-circle', label: 'O Meu Perfil' }
             ];
         } else if (this.role === 'teacher') {
             navItems = [
                 { id: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard' },
-                { id: 'classes', icon: 'fa-calendar-alt', label: 'Gestão de Aulas' },
                 { id: 'clients', icon: 'fa-user-friends', label: 'Meus Alunos' },
                 { id: 'anamnesis', icon: 'fa-notes-medical', label: 'Anamnese' },
                 { id: 'exercises', icon: 'fa-play-circle', label: 'Biblioteca Exercícios' },
@@ -1149,7 +1141,6 @@ Bons treinos!`;
         } else {
             navItems = [
                 { id: 'dashboard', icon: 'fa-home', label: 'Inicio' },
-                { id: 'classes', icon: 'fa-calendar-alt', label: 'Horário de Aulas' },
                 { id: 'training', icon: 'fa-dumbbell', label: 'Meu Treino' },
                 { id: 'meal', icon: 'fa-apple-alt', label: 'Minha Dieta' },
                 { id: 'evaluation', icon: 'fa-chart-line', label: 'Avaliação Física' },
@@ -1321,9 +1312,6 @@ Bons treinos!`;
                         </button>
                         <button class="btn btn-ghost" id="tab-admins" onclick="app.switchAdminTab('admins')" style="color: var(--accent); font-weight: 600;">
                             <i class="fas fa-user-shield"></i> Gestores (${(this.state.admins || []).length})
-                        </button>
-                        <button class="btn btn-ghost" id="tab-plans" onclick="app.switchAdminTab('plans')" style="color: #f1c40f; font-weight: 600;">
-                            <i class="fas fa-file-invoice-dollar"></i> Mensalidades (Regras)
                         </button>
                     </div>
 
