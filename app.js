@@ -1513,7 +1513,16 @@ Bons treinos!`;
     renderExerciseLibrary(container) {
         const isAdmin = this.role === 'admin';
         const controls = isAdmin ? `
-                <div style="display:flex; gap:0.5rem; flex-wrap: wrap;">
+                <div style="display:flex; gap:0.5rem; flex-wrap: wrap; align-items:center;">
+                    <div id="bulk-exercise-actions" style="display:none; gap:0.5rem; align-items:center; background:rgba(var(--primary-rgb), 0.1); padding:5px 10px; border-radius:8px; border:1px solid var(--primary);">
+                        <span id="selected-count" style="font-size:0.8rem; font-weight:bold; color:var(--primary);">0 selecionados</span>
+                        <select id="bulk-category-select" class="btn btn-ghost btn-sm" style="background:var(--surface); border:1px solid var(--surface-border); min-width:120px;">
+                            <option value="">Mudar Categoria...</option>
+                            ${(this.state.exerciseCategories || ["Geral"]).map(c => `<option value="${c}">${c}</option>`).join('')}
+                        </select>
+                        <button class="btn btn-primary btn-sm" onclick="app.applyBulkCategory()">Aplicar</button>
+                        <button class="btn btn-ghost btn-sm" onclick="app.clearExerciseSelection()" title="Cancelar"><i class="fas fa-times"></i></button>
+                    </div>
                     <button class="btn btn-secondary btn-sm" onclick="app.showManageExerciseCategoriesModal()" title="Gerir Categorias"><i class="fas fa-tags"></i> <span class="hide-mobile">Categorias</span></button>
                     <button class="btn btn-secondary btn-sm" onclick="app.exportExerciseDatabase()" title="Exportar Backup"><i class="fas fa-file-export"></i> <span class="hide-mobile">Exportar</span></button>
                     <button class="btn btn-secondary btn-sm" onclick="document.getElementById('import-exercise-input').click()" title="Importar Backup"><i class="fas fa-file-import"></i> <span class="hide-mobile">Importar</span></button>
@@ -1595,8 +1604,9 @@ Bons treinos!`;
                 }
 
                 return `
-                                <div class="glass-card" style="padding:0; overflow:hidden; position:relative; border-top: 3px solid var(--primary);">
-                                    ${hasVideo ? `<iframe width="100%" height="150" src="${cleanUrl}" frameborder="0" allowfullscreen></iframe>` : `
+                                <div class="glass-card exercise-selectable-card" id="ex-card-${ex.id}" data-id="${ex.id}" style="padding:0; overflow:hidden; position:relative; border-top: 3px solid var(--primary); cursor:pointer;" onclick="app.toggleExerciseSelection(${ex.id}, event)">
+                                    ${isAdmin ? `<div class="selection-indicator" style="position:absolute; top:10px; left:10px; width:22px; height:22px; border-radius:50%; border:2px solid #fff; background:rgba(0,0,0,0.5); z-index:10; display:flex; align-items:center; justify-content:center; transition:all 0.2s;"><i class="fas fa-check" style="font-size:0.7rem; color:white; display:none;"></i></div>` : ''}
+                                    ${hasVideo ? `<iframe width="100%" height="150" src="${cleanUrl}" frameborder="0" allowfullscreen style="pointer-events:none;"></iframe>` : `
                                         <div style="width:100%; height:150px; background:rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; flex-direction: column; gap: 10px;">
                                             ${ex.photoUrl ? `<img src="${ex.photoUrl}" style="width:100%; height:100%; object-fit:cover;">` : `
                                                 <i class="fas fa-video-slash" style="font-size:1.5rem; opacity: 0.3;"></i>
@@ -1611,11 +1621,11 @@ Bons treinos!`;
                                 <small style="color:var(--text-muted);">${ex.muscle ? ex.muscle : (ex.category || 'Geral')}</small>
                         </div>
                         <div style="display:flex; gap:0.4rem;">
-                            ${this.role === 'admin' ? `
-                                                <button class="btn btn-ghost btn-sm" style="color:var(--accent); padding:5px;" onclick="app.showEditExerciseModal(${ex.id})" title="Editar">
+                            ${isAdmin ? `
+                                                <button class="btn btn-ghost btn-sm" style="color:var(--accent); padding:5px;" onclick="event.stopPropagation(); app.showEditExerciseModal(${ex.id})" title="Editar">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
-                                                <button class="btn btn-ghost btn-sm" style="color:var(--danger); padding:5px;" onclick="app.deleteExercise(${ex.id})" title="Eliminar">
+                                                <button class="btn btn-ghost btn-sm" style="color:var(--danger); padding:5px;" onclick="event.stopPropagation(); app.deleteExercise(${ex.id})" title="Eliminar">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                                 ` : ''}
@@ -1886,6 +1896,76 @@ Bons treinos!`;
             this.saveState();
             this.renderContent();
             alert('Exercício removido. ');
+        }
+    }
+
+    toggleExerciseSelection(id, event) {
+        if (this.role !== 'admin') return;
+        
+        // Evitar seleção ao carregar em botões de ação
+        if (event.target.closest('button')) return;
+
+        if (!this.selectedExercises) this.selectedExercises = new Set();
+        
+        const card = document.getElementById(`ex-card-${id}`);
+        const indicator = card.querySelector('.selection-indicator');
+        const checkIcon = indicator.querySelector('i');
+
+        if (this.selectedExercises.has(id)) {
+            this.selectedExercises.delete(id);
+            card.style.borderColor = 'var(--primary)';
+            card.style.background = '';
+            indicator.style.background = 'rgba(0,0,0,0.5)';
+            indicator.style.borderColor = '#fff';
+            checkIcon.style.display = 'none';
+        } else {
+            this.selectedExercises.add(id);
+            card.style.borderColor = 'var(--accent)';
+            card.style.background = 'rgba(var(--accent-rgb), 0.05)';
+            indicator.style.background = 'var(--accent)';
+            indicator.style.borderColor = 'var(--accent)';
+            checkIcon.style.display = 'block';
+        }
+
+        this.updateBulkActionsUI();
+    }
+
+    updateBulkActionsUI() {
+        const bulkDiv = document.getElementById('bulk-exercise-actions');
+        const countSpan = document.getElementById('selected-count');
+        const count = this.selectedExercises ? this.selectedExercises.size : 0;
+
+        if (count > 0) {
+            bulkDiv.style.display = 'flex';
+            countSpan.innerText = `${count} selecionados`;
+        } else {
+            bulkDiv.style.display = 'none';
+        }
+    }
+
+    clearExerciseSelection() {
+        this.selectedExercises = new Set();
+        this.renderContent(); // Força re-render para limpar estados visuais
+    }
+
+    applyBulkCategory() {
+        const newCat = document.getElementById('bulk-category-select').value;
+        if (!newCat) return alert('Selecione uma categoria primeiro.');
+        if (!this.selectedExercises || this.selectedExercises.size === 0) return;
+
+        const count = this.selectedExercises.size;
+        if (confirm(`Deseja mover os ${count} exercícios selecionados para a categoria "${newCat}"?`)) {
+            this.state.exercises = this.state.exercises.map(ex => {
+                if (this.selectedExercises.has(Number(ex.id))) {
+                    ex.category = newCat;
+                }
+                return ex;
+            });
+
+            this.selectedExercises = new Set();
+            this.saveState();
+            this.renderContent();
+            this.showToast(`${count} exercícios movidos com sucesso!`);
         }
     }
 
