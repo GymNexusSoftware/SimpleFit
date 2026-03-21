@@ -1,4 +1,4 @@
-﻿// Tratador de Erros Global - Deve ser o primeiro a carregar
+// Tratador de Erros Global - Deve ser o primeiro a carregar
 window.onerror = function (message, source, lineno, colno, error) {
     console.error("Erro detectado:", message, "em", source, ":", lineno);
     const container = document.getElementById('main-content');
@@ -840,7 +840,7 @@ class FitnessApp {
 
 A sua conta de ${label} na  foi criada com sucesso!
 
-Poderá aceder a plataforma através do seguinte endereço: https://kandalspahealthclub.github.io//
+Poderá aceder a plataforma através do seguinte endereço: https://'+AppConfig.appName.toLowerCase().replace(/\s/g,'')+'.github.io/
 
 As suas credenciais de acesso sao:
 - Email: ${email}
@@ -855,7 +855,7 @@ Equipa `;
 
 Ola ${name}, a sua conta de ${label} foi criada!
 
- Aceda aqui: https://kandalspahealthclub.github.io//
+ Aceda aqui: https://'+AppConfig.appName.toLowerCase().replace(/\s/g,'')+'.github.io/
 
  *Credenciais:*
  Email: ${email}

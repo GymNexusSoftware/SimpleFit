@@ -2,18 +2,17 @@
 // Este ficheiro permite gerir todas as configurações globais da aplicação de forma fácil.
 const AppConfig = {
     // Configurações Gerais
-    appName: "Fitness App",
-    appTitle: "Fitness App - Personal Trainer & Planeamento",
-    logoPath: "logo.png", // Nome do seu ficheiro da logo
+    appName: "SimpleFit",
+    appTitle: "SimpleFit - Personal Trainer & Planeamento",
+    logoPath: "logo.png", // Imagem do logotipo (guarde a sua imagem aqui com este nome)
     heroPath: "hero1.png", // Imagem de fundo principal
-    defaultAdminEmail: "admin@fitnessapp.com",
+    defaultAdminEmail: "admin@simplefit.com",
     
-    // Configurações de Cores
-    // Para alterar o estilo da App, modifique aqui. (Pode usar Hex ou RGBA)
+    // Configurações de Cores (Minimalista Dark para combinar com o Logo)
     theme: {
-        primary: "#911B2B",       // Cor principal (ex: botões, ícones)
-        primaryHover: "#751421",  // Cor principal ao passar o rato
-        background: "#0f1218"     // Cor de fundo padrão
+        primary: "#3f3f46",       // Cinzento escuro para botões/ícones para não chocar com o preto/branco
+        primaryHover: "#27272a",  // hover
+        background: "#000000"     // Fundo 100% Preto
     },
 
     // Configuração da Base de Dados (Firebase)
