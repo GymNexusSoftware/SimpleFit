@@ -923,24 +923,6 @@ class FitnessApp {
             return;
         }
 
-        if (errorDiv) errorDiv.style.display = 'none';
-        if (!emailInput || !passInput) return;
-
-        const email = emailInput.value.trim().toLowerCase();
-        const pass = passInput.value;
-        const rememberEl = document.getElementById('remember-me');
-        const rememberMe = rememberEl ? rememberEl.checked : false;
-
-        if (!email || !pass) {
-            if (errorDiv) {
-                errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Por favor, preencha todos os campos.';
-                errorDiv.style.display = 'block';
-            }
-            return;
-        }
-
-        if (loginBtn) { loginBtn.disabled = true; loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A entrar...'; }
-
         try {
             // Configurar persistencia de sessao
             await this.auth.setPersistence(

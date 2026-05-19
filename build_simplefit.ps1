@@ -108,7 +108,27 @@ $origHandleStart = '    async handleLogin() {
         const emailInput = document.getElementById(''login-email'');
         const passInput = document.getElementById(''login-pass'');
         const errorDiv = document.getElementById(''login-error-msg'');
-        const loginBtn = document.querySelector(''.login-form button[type="submit"]'');'
+        const loginBtn = document.querySelector(''.login-form button[type="submit"]'');
+
+        if (errorDiv) errorDiv.style.display = ''none'';
+        if (!emailInput || !passInput) return;
+
+        const email = emailInput.value.trim().toLowerCase();
+        const pass = passInput.value;
+        const rememberEl = document.getElementById(''remember-me'');
+        const rememberMe = rememberEl ? rememberEl.checked : false;
+
+        if (!email || !pass) {
+            if (errorDiv) {
+                errorDiv.innerHTML = ''<i class="fas fa-exclamation-circle"></i> Por favor, preencha todos os campos.'';
+                errorDiv.style.display = ''block'';
+            }
+            return;
+        }
+
+        if (loginBtn) { loginBtn.disabled = true; loginBtn.innerHTML = ''<i class="fas fa-spinner fa-spin"></i> A entrar...''; }
+
+        try {'
 
 $newHandleStart = '    async handleLogin() {
         const emailInput = document.getElementById(''login-email'');
@@ -179,7 +199,9 @@ $newHandleStart = '    async handleLogin() {
             this.renderAppInterface();
             if (loginBtn) { loginBtn.disabled = false; loginBtn.innerHTML = ''Entrar <i class="fas fa-arrow-right"></i>''; }
             return;
-        }'
+        }
+
+        try {'
 
 # Remove all CRLF to ensure matching compatibility
 $contentNormalized = $content.Replace("`r`n", "`n")
