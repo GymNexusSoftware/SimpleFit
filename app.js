@@ -1,4 +1,4 @@
-﻿// Dynamic configurations derived from AppConfig
+// Dynamic configurations derived from AppConfig
 const APP_NAME = typeof AppConfig !== 'undefined' ? AppConfig.appName : 'SimpleFit';
 const APP_EMAIL = typeof AppConfig !== 'undefined' ? AppConfig.defaultAdminEmail : 'admin@simplefit.com';
 const PRIMARY_COLOR = typeof AppConfig !== 'undefined' ? AppConfig.theme.primary : '#ffffff';
@@ -2498,7 +2498,25 @@ Equipa ${APP_NAME}`;
         const monitorWindow = window.open('', APP_NAME + 'Monitor', 'width=1200,height=800');
         if (!monitorWindow) return alert("Por favor, permita pop-ups para abrir o monitor.");
 
-        const css = ':root { --primary: #6366f1; --secondary: #10b981; --danger: #ef4444; --bg: #0f172a; --text: #f8fafc; } ' +
+        // Converter cor primária hexadecimal para RGB para suportar sombras e opacidade na janela do monitor
+        let primaryRgb = '99, 102, 241'; // Fallback
+        const hex = PRIMARY_COLOR;
+        if (hex && hex.startsWith('#')) {
+            const clean = hex.slice(1);
+            if (clean.length === 3) {
+                const r = parseInt(clean[0] + clean[0], 16);
+                const g = parseInt(clean[1] + clean[1], 16);
+                const b = parseInt(clean[2] + clean[2], 16);
+                primaryRgb = `${r}, ${g}, ${b}`;
+            } else if (clean.length === 6) {
+                const r = parseInt(clean.substring(0, 2), 16);
+                const g = parseInt(clean.substring(2, 4), 16);
+                const b = parseInt(clean.substring(4, 6), 16);
+                primaryRgb = `${r}, ${g}, ${b}`;
+            }
+        }
+
+        const css = ':root { --primary: ' + PRIMARY_COLOR + '; --primary-rgb: ' + primaryRgb + '; --secondary: #10b981; --danger: #ef4444; --bg: ' + (typeof AppConfig !== 'undefined' ? AppConfig.theme.background : '#0f172a') + '; --text: #f8fafc; } ' +
             'body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: \'Outfit\', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; } ' +
             '.container { text-align: center; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.5s ease; } ' +
             '.logo { width: 400px; opacity: 0.8; animation: pulse 3s infinite ease-in-out; } ' +
@@ -2515,12 +2533,12 @@ Equipa ${APP_NAME}`;
             '@keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } } ' +
             '@keyframes slideUp { from { opacity: 0; transform: translateY(100px); } to { opacity: 1; transform: translateY(0); } }';
 
-        let html = '<html><head><title>${APP_NAME} - Monitor de Acesso</title>' +
+        let html = '<html><head><title>' + APP_NAME + ' - Monitor de Acesso</title>' +
             '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">' +
             '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">' +
             '<style>' + css + '</style></head><body>' +
             '<div id="display-container" class="container">' +
-            '<div id="standby" class="logo"><img src="logo.png" style="width:100%; filter: drop-shadow(0 0 30px rgba(99,102,241,0.3));"></div>' +
+            '<div id="standby" class="logo"><img src="logo.png" style="width:100%; filter: drop-shadow(0 0 30px rgba(var(--primary-rgb),0.3));"></div>' +
             '<div id="user-display" class="user-card">' +
             '<div id="user-photo-frame" class="photo-frame"><img id="user-photo" src="" style="display:none;"><i id="user-icon" class="fas fa-user"></i></div>' +
             '<h1 id="user-name" class="name">NOME DO CLIENTE</h1>' +
@@ -2530,7 +2548,7 @@ Equipa ${APP_NAME}`;
             '<input type="text" id="monitor-scanner-input" autocomplete="off" style="position:fixed; top:-100px; left:-100px; opacity:0;">' +
 
             '<script>' +
-            'const bc = new BroadcastChannel(LS_PREFIX + 'access'); let timeout; ' +
+            'const bc = new BroadcastChannel("' + LS_PREFIX + 'access"); let timeout; ' +
             'const hwInput = document.getElementById("monitor-scanner-input"); ' +
 
             'hwInput.onkeyup = (e) => { ' +
