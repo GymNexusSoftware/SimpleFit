@@ -1,10 +1,11 @@
-// Dynamic configurations derived from AppConfig
+﻿// Dynamic configurations derived from AppConfig
 const APP_NAME = typeof AppConfig !== 'undefined' ? AppConfig.appName : 'SimpleFit';
 const APP_EMAIL = typeof AppConfig !== 'undefined' ? AppConfig.defaultAdminEmail : 'admin@simplefit.com';
 const PRIMARY_COLOR = typeof AppConfig !== 'undefined' ? AppConfig.theme.primary : '#ffffff';
 const PRIMARY_HOVER = typeof AppConfig !== 'undefined' ? AppConfig.theme.primaryHover : '#e5e5e5';
 const LS_PREFIX = typeof AppConfig !== 'undefined' ? AppConfig.appName.toLowerCase().replace(/\s/g, '_') + '_' : 'simplefit_';
 const DB_STATE_REF = typeof AppConfig !== 'undefined' ? AppConfig.appName.toLowerCase().replace(/\s/g, '') + 'State' : 'simplefitState';
+
 window.onerror = function (message, source, lineno, colno, error) {
     console.error("Erro detectado:", message, "em", source, ":", lineno);
     
@@ -92,12 +93,22 @@ class FitnessApp {
         vitalDicts.forEach(d => { if (!this.state[d]) this.state[d] = {}; });
 
         this.shownNotifications = JSON.parse(localStorage.getItem('shown_notifications') || '[]');
-        this.lastChatCheck = Number(localStorage.getItem(LS_PREFIX + 'last_chat_check') || 0);
+        this.lastChatCheck = Number(localStorage.getItem('kg_last_chat_check') || 0);
         this.isLoggedIn = false;
         this.currentUser = null;
 
         // Initialize Firebase
-        this.firebaseAppConfig = AppConfig.firebaseConfig;
+        this.firebaseAppConfig = {
+            apiKey: "AIzaSyD7cf3sfJBm0YsLOagu6or2hCTd-xcjO1E",
+            authDomain: "kandalgym.firebaseapp.com",
+            databaseURL: "https://kandalgym-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "kandalgym",
+            storageBucket: "kandalgym.firebasestorage.app",
+            messagingSenderId: "367817039949",
+            appId: "1:367817039949:web:5c72215819b9bb1eb07c04",
+            measurementId: "G-WY0QSKYVCR",
+            serverKey: "AIzaSyD7cf3sfJBm0YsLOagu6or2hCTd-xcjO1E" // ATENÇÃO: Está chave deve começar por AAAA...
+        };
 
         try {
             if (!window.firebase) {
@@ -249,10 +260,10 @@ class FitnessApp {
     checkForForceUpdate() {
         try {
             const targetV = 'v90'; // Forçar v90 (Template Plans & Mobile Nav Fix)
-            const currentV = localStorage.getItem(LS_PREFIX + 'v');
+            const currentV = localStorage.getItem('kg_v');
             if (currentV !== targetV) {
-                console.warn("Forçando atualização total da App (${APP_NAME} v70)...");
-                localStorage.setItem(LS_PREFIX + 'v', targetV);
+                console.warn("Forçando atualização total da App ('+APP_NAME+' v70)...");
+                localStorage.setItem('kg_v', targetV);
                 localStorage.removeItem(LS_PREFIX + 'session');
                 localStorage.removeItem(LS_PREFIX + 'state');
 
@@ -685,14 +696,14 @@ class FitnessApp {
         if (loginScreen) loginScreen.style.display = 'flex';
         if (appScreen) appScreen.style.display = 'none';
 
-        const savedCreds = JSON.parse(localStorage.getItem(LS_PREFIX + 'saved_creds') || '{}');
-        const rememberChecked = localStorage.getItem(LS_PREFIX + 'remember') === 'true';
+        const savedCreds = JSON.parse(localStorage.getItem('kg_saved_creds') || '{}');
+        const rememberChecked = localStorage.getItem('kg_remember') === 'true';
 
         loginScreen.innerHTML = `
             <div class="login-card">
                 <div class="login-hero">
                     <div class="logo">
-                        <img src="logo.png" alt="${APP_NAME} Logo">
+                        <img src="logo.png" alt="'+APP_NAME+' Logo">
                     </div>
                     <p>Entre na sua conta para continuar</p>
                 </div>
@@ -732,7 +743,7 @@ class FitnessApp {
             <div class="login-card animate-scale-in">
                 <div class="login-hero">
                     <div class="logo">
-                        <img src="logo.png" alt="${APP_NAME} Logo">
+                        <img src="logo.png" alt="'+APP_NAME+' Logo">
                     </div>
                     <h3>Recuperar Conta</h3>
                     <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.5; margin-top:0.5rem; padding: 0 1rem;">
@@ -827,14 +838,14 @@ class FitnessApp {
             user = allUsers.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
         }
 
-        let message = "Olá " + APP_NAME + "! Gostaria de solicitar a recuperação da minha palavra-passe.";
+        let message = "Olá '+APP_NAME+'! Gostaria de solicitar a recuperação da minha palavra-passe.";
 
         if (user) {
             // Se encontrarmos o utilizador, enviamos Nome e Email
-            message = `Olá ${APP_NAME}! O meu nome é ${user.name}, o meu email é ${user.email} e gostaria de solicitar a recuperação da minha palavra-passe.`;
+            message = `Olá '+APP_NAME+'! O meu nome é ${user.name}, o meu email é ${user.email} e gostaria de solicitar a recuperação da minha palavra-passe.`;
         } else if (email) {
             // Se só tivermos o email, enviamos só o email
-            message = `Olá ${APP_NAME}! O meu email é ${email} e gostaria de solicitar a recuperação da minha palavra-passe.`;
+            message = `Olá '+APP_NAME+'! O meu email é ${email} e gostaria de solicitar a recuperação da minha palavra-passe.`;
         }
 
         const waUrl = `https://wa.me/351963939017?text=${encodeURIComponent(message)}`;
@@ -927,11 +938,11 @@ class FitnessApp {
 
             // Guardar email (sem password) para conveniencia
             if (rememberMe) {
-                localStorage.setItem(LS_PREFIX + 'remember', 'true');
-                localStorage.setItem(LS_PREFIX + 'saved_creds', JSON.stringify({ email: email }));
+                localStorage.setItem('kg_remember', 'true');
+                localStorage.setItem('kg_saved_creds', JSON.stringify({ email: email }));
             } else {
-                localStorage.removeItem(LS_PREFIX + 'remember');
-                localStorage.removeItem(LS_PREFIX + 'saved_creds');
+                localStorage.removeItem('kg_remember');
+                localStorage.removeItem('kg_saved_creds');
             }
 
             this.saveState();
@@ -1005,7 +1016,7 @@ class FitnessApp {
         this.isLoggedIn = false;
         this.currentUser = null;
         localStorage.removeItem(LS_PREFIX + 'session');
-        localStorage.removeItem(LS_PREFIX + 'saved_creds');
+        localStorage.removeItem('kg_saved_creds');
         if (this.auth) this.auth.signOut().catch(() => { });
         window.location.reload();
     }
@@ -1312,11 +1323,11 @@ class FitnessApp {
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
 
-        const subject = `Bem-vindo a ${APP_NAME} - ${name}`;
+        const subject = `Bem-vindo a '+APP_NAME+' - ${name}`;
         const body = `Olá ${name},
-A sua conta de ${label} na ${APP_NAME} foi criada com sucesso!
+A sua conta de ${label} na '+APP_NAME+' foi criada com sucesso!
 Esta App ainda encontra-se em fase de teste, mas poderá já usufruir de várias funcionalidades como: a marcação de aulas, consulta dos seus planos de treino, avaliações físicas e planos alimentares.
-Poderá aceder a plataforma através do seguinte endereço: https://kandalspahealthclub.github.io/${APP_NAME}/
+Poderá aceder a plataforma através do seguinte endereço: https://kandalspahealthclub.github.io/'+APP_NAME+'/
 
 *As suas credenciais de acesso são:*
 - *Email:* ${email}
@@ -1326,9 +1337,9 @@ Poderá aceder a plataforma através do seguinte endereço: https://kandalspahea
 
 Recomendamos que guarde este link nos seus favoritos ou instale a App no seu telemóvel.
 Bons treinos!
-Equipa ${APP_NAME}`;
+Equipa '+APP_NAME+'`;
 
-        const whatsappText = `*Bem-vindo a ${APP_NAME}*\n` +
+        const whatsappText = `*Bem-vindo a '+APP_NAME+'*\n` +
             `---------------------------------------------\n` +
             `Olá *${name}*, a sua conta de *${label}* foi criada!\n` +
             `*CREDENCIAIS DE ACESSO:*\n` +
@@ -1336,7 +1347,7 @@ Equipa ${APP_NAME}`;
             `*Password:* ${pass}\n` +
             `*AVISO:* Altere a sua password no menu "Perfil" após o primeiro acesso.\n\n` +
             `_A App está em fase de teste, mas já pode usar a marcação de aulas, os planos de treino e muito mais._\n` +
-            `*Acesso:* https://kandalspahealthclub.github.io/${APP_NAME}/\n` +
+            `*Acesso:* https://kandalspahealthclub.github.io/'+APP_NAME+'/\n` +
             `Bons treinos!`;
 
         const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -1663,7 +1674,7 @@ Equipa ${APP_NAME}`;
         }
         if (view === 'chat') {
             this.lastChatCheck = Date.now();
-            localStorage.setItem(LS_PREFIX + 'last_chat_check', this.lastChatCheck);
+            localStorage.setItem('kg_last_chat_check', this.lastChatCheck);
         }
         this.persistLogin();
         this.renderNavbar();
@@ -2293,7 +2304,7 @@ Equipa ${APP_NAME}`;
                 </div>
                 
                 <div style="margin-top: 1.5rem; background: rgba(255,193,7,0.1); border-left: 4px solid #ffc107; padding: 0.8rem; font-size: 0.8rem;">
-                    <i class="fas fa-info-circle"></i> <strong>Nota:</strong> O sistema irá gerar emails automáticos (ex: 912345678@${APP_NAME.toLowerCase()}.pt) e definir a password padrão: <strong>${APP_NAME}123</strong>.
+                    <i class="fas fa-info-circle"></i> <strong>Nota:</strong> O sistema irá gerar emails automáticos (ex: 912345678@' + APP_NAME.toLowerCase().Replace(' ', '') + '.pt') e definir a password padrão: <strong>' + APP_NAME + '123</strong>.
                 </div>
 
                 <div id="bulk-import-cancel" style="margin-top: 1.5rem; text-align: center;">
@@ -2375,7 +2386,7 @@ Equipa ${APP_NAME}`;
 
             // Gerar dados automáticos
             const newId = Date.now() + imported;
-            const email = (raw.email || raw.Email || `${cleanPhone}@${APP_NAME.toLowerCase()}.pt`).toLowerCase().trim();
+            const email = (raw.email || raw.Email || `${cleanPhone}@' + APP_NAME.toLowerCase().Replace(' ', '') + '.pt'`).toLowerCase().trim();
             const pass = raw.password || raw.pass || APP_NAME + '123';
 
             const newClient = {
@@ -2425,7 +2436,7 @@ Equipa ${APP_NAME}`;
         const a = document.createElement('a');
         const now = new Date().toISOString().split('T')[0];
         a.href = url;
-        a.download = `Backup_Clientes_${APP_NAME}_${now}.json`;
+        a.download = `Backup_Clientes_'+APP_NAME+'_${now}.json`;
         a.click();
         URL.revokeObjectURL(url);
     }
@@ -2495,28 +2506,10 @@ Equipa ${APP_NAME}`;
     }
 
     openAccessMonitor() {
-        const monitorWindow = window.open('', APP_NAME + 'Monitor', 'width=1200,height=800');
+        const monitorWindow = window.open('', ''+APP_NAME+'Monitor', 'width=1200,height=800');
         if (!monitorWindow) return alert("Por favor, permita pop-ups para abrir o monitor.");
 
-        // Converter cor primária hexadecimal para RGB para suportar sombras e opacidade na janela do monitor
-        let primaryRgb = '99, 102, 241'; // Fallback
-        const hex = PRIMARY_COLOR;
-        if (hex && hex.startsWith('#')) {
-            const clean = hex.slice(1);
-            if (clean.length === 3) {
-                const r = parseInt(clean[0] + clean[0], 16);
-                const g = parseInt(clean[1] + clean[1], 16);
-                const b = parseInt(clean[2] + clean[2], 16);
-                primaryRgb = `${r}, ${g}, ${b}`;
-            } else if (clean.length === 6) {
-                const r = parseInt(clean.substring(0, 2), 16);
-                const g = parseInt(clean.substring(2, 4), 16);
-                const b = parseInt(clean.substring(4, 6), 16);
-                primaryRgb = `${r}, ${g}, ${b}`;
-            }
-        }
-
-        const css = ':root { --primary: ' + PRIMARY_COLOR + '; --primary-rgb: ' + primaryRgb + '; --secondary: #10b981; --danger: #ef4444; --bg: ' + (typeof AppConfig !== 'undefined' ? AppConfig.theme.background : '#0f172a') + '; --text: #f8fafc; } ' +
+        const css = ':root { --primary: #6366f1; --secondary: #10b981; --danger: #ef4444; --bg: #0f172a; --text: #f8fafc; } ' +
             'body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: \'Outfit\', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; } ' +
             '.container { text-align: center; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.5s ease; } ' +
             '.logo { width: 400px; opacity: 0.8; animation: pulse 3s infinite ease-in-out; } ' +
@@ -2538,7 +2531,7 @@ Equipa ${APP_NAME}`;
             '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">' +
             '<style>' + css + '</style></head><body>' +
             '<div id="display-container" class="container">' +
-            '<div id="standby" class="logo"><img src="logo.png" style="width:100%; filter: drop-shadow(0 0 30px rgba(var(--primary-rgb),0.3));"></div>' +
+            '<div id="standby" class="logo"><img src="logo.png" style="width:100%; filter: drop-shadow(0 0 30px rgba(99,102,241,0.3));"></div>' +
             '<div id="user-display" class="user-card">' +
             '<div id="user-photo-frame" class="photo-frame"><img id="user-photo" src="" style="display:none;"><i id="user-icon" class="fas fa-user"></i></div>' +
             '<h1 id="user-name" class="name">NOME DO CLIENTE</h1>' +
@@ -2548,7 +2541,7 @@ Equipa ${APP_NAME}`;
             '<input type="text" id="monitor-scanner-input" autocomplete="off" style="position:fixed; top:-100px; left:-100px; opacity:0;">' +
 
             '<script>' +
-            'const bc = new BroadcastChannel("' + LS_PREFIX + 'access"); let timeout; ' +
+            'const bc = new BroadcastChannel(LS_PREFIX + 'access'); let timeout; ' +
             'const hwInput = document.getElementById("monitor-scanner-input"); ' +
 
             'hwInput.onkeyup = (e) => { ' +
@@ -2884,7 +2877,7 @@ Equipa ${APP_NAME}`;
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.state.exercises, null, 2));
         const downloadAnchorNode = document.createElement('a');
         downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", `${APP_NAME}_Exercicios_Backup_${new Date().toISOString().split('T')[0]}.json`);
+        downloadAnchorNode.setAttribute("download", `'+APP_NAME+'_Exercicios_Backup_${new Date().toISOString().split('T')[0]}.json`);
         document.body.appendChild(downloadAnchorNode);
         downloadAnchorNode.click();
         downloadAnchorNode.remove();
@@ -3261,7 +3254,7 @@ Equipa ${APP_NAME}`;
         if (type === 'email') {
             const emails = clients.map(c => c.email).filter(e => e && e !== 'undefined').join(',');
             if (!emails) return alert('Nenhum dos clientes selecionados possui email registado.');
-            const mailto = `mailto:?bcc=${emails}&subject=${APP_NAME}%20-%20Comunicado&body=${encodeURIComponent(msg)}`;
+            const mailto = `mailto:?bcc=${emails}&subject='+APP_NAME+'%20-%20Comunicado&body=${encodeURIComponent(msg)}`;
             window.location.href = mailto;
         } else if (type === 'whatsapp') {
             // Because Popup blockers prevent multiple WhatsApp tabs, handle it via a guided modal
@@ -3503,7 +3496,7 @@ Equipa ${APP_NAME}`;
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.state.foods, null, 2));
         const downloadAnchorNode = document.createElement('a');
         downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", `${APP_NAME}_Alimentos_Backup_${new Date().toISOString().split('T')[0]}.json`);
+        downloadAnchorNode.setAttribute("download", `'+APP_NAME+'_Alimentos_Backup_${new Date().toISOString().split('T')[0]}.json`);
         document.body.appendChild(downloadAnchorNode);
         downloadAnchorNode.click();
         downloadAnchorNode.remove();
@@ -5975,7 +5968,7 @@ Equipa ${APP_NAME}`;
             case 'dashboard':
                 container.innerHTML = `
                     <h2 class="animate-fade-in">Bem-vindo, ${c.name} </h2>
-                    <p style="color:var(--text-muted); margin-bottom:1rem;">Este é o seu painel de acompanhamento ${APP_NAME}.</p>
+                    <p style="color:var(--text-muted); margin-bottom:1rem;">Este é o seu painel de acompanhamento '+APP_NAME+'.</p>
                     
                     ${(() => {
                         const t = this.state.teachers.find(teacher => teacher.id === c.teacherId);
@@ -6779,7 +6772,7 @@ Equipa ${APP_NAME}`;
         Object.keys(threads).forEach(id => {
             const t = threads[id];
             if (id === 'system') {
-                t.user = { name: 'Sistema ' + APP_NAME, photoUrl: null, role: 'system' };
+                t.user = { name: 'Sistema ' + APP_NAME', photoUrl: null, role: 'system' };
             } else if (!t.user) {
                 const uid = Number(id);
                 t.user = this.state.clients.find(c => c.id === uid) ||
@@ -6794,7 +6787,7 @@ Equipa ${APP_NAME}`;
             }
         });
 
-        // 4. Ordenar threads: Sistema ${APP_NAME} primeiro (para admin), depois por data, depois alfabetico
+        // 4. Ordenar threads: Sistema ' + APP_NAME primeiro (para admin), depois por data, depois alfabetico
         const sortedThreads = Object.values(threads).sort((a, b) => {
             if (this.role === 'admin') {
                 if (a.id === 'system') return -1;
@@ -7805,8 +7798,8 @@ Equipa ${APP_NAME}`;
 
         // 2. Build the HTML content
         let html = `
-            <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid ${PRIMARY_COLOR}; padding-bottom: 10px;">
-                <h1 style="color: ${PRIMARY_COLOR}; margin: 0;">${APP_NAME}</h1>
+            <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #911B2B; padding-bottom: 10px;">
+                <h1 style="color: #911B2B; margin: 0;">'+APP_NAME+'</h1>
                 <p style="color: #666; margin: 5px 0;">Plano de Treino Personalizado</p>
             </div>
 
@@ -7820,7 +7813,7 @@ Equipa ${APP_NAME}`;
         plans.forEach(day => {
             html += `
                 <div style="margin-bottom: 25px;">
-                    <h3 style="background: ${PRIMARY_COLOR}; color: white; padding: 10px; margin-bottom: 0; font-size: 16px;">${day.title}</h3>
+                    <h3 style="background: #911B2B; color: white; padding: 10px; margin-bottom: 0; font-size: 16px;">${day.title}</h3>
                     <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
                         <tr style="background: #eee;">
                             <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Exercício</th>
@@ -7852,7 +7845,7 @@ Equipa ${APP_NAME}`;
 
         html += `
             <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #999;">
-                <p>Gerado por ${APP_NAME} App</p>
+                <p>Gerado por SimpleFit App</p>
             </div>
             `;
 
@@ -7889,8 +7882,8 @@ Equipa ${APP_NAME}`;
 
         // Build HTML content
         let htmlContent = `
-            <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid ${PRIMARY_COLOR}; padding-bottom: 10px;">
-                <h1 style="color: ${PRIMARY_COLOR}; margin: 0;">${APP_NAME}</h1>
+            <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #911B2B; padding-bottom: 10px;">
+                <h1 style="color: #911B2B; margin: 0;">'+APP_NAME+'</h1>
                 <p style="color: #666; margin: 5px 0;">Plano Alimentar Personalizado</p>
             </div>
 
@@ -7919,7 +7912,7 @@ Equipa ${APP_NAME}`;
                 ` : ''}
             </div>
 
-            <h3 style="color: ${PRIMARY_COLOR}; border-bottom: 1px solid #eee; padding-bottom: 5px; margin: 20px 0 15px 0;">${mealPlan.title || 'Plano Alimentar'}</h3>
+            <h3 style="color: #911B2B; border-bottom: 1px solid #eee; padding-bottom: 5px; margin: 20px 0 15px 0;">${mealPlan.title || 'Plano Alimentar'}</h3>
         `;
 
         mealPlan.meals.forEach(m => {
@@ -7933,7 +7926,7 @@ Equipa ${APP_NAME}`;
 
             htmlContent += `
                 <div style="margin-bottom: 20px; page-break-inside: avoid;">
-                    <div style="background: ${PRIMARY_COLOR}; color: white; padding: 8px 12px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="background: #911B2B; color: white; padding: 8px 12px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
                         <span>${m.time} - ${m.name}</span>
                         ${mN.kcal > 0 ? `<span style="font-size: 12px;">${Math.round(mN.kcal)} kcal</span>` : ''}
                     </div>
@@ -7973,8 +7966,8 @@ Equipa ${APP_NAME}`;
         const evalsToPrint = index !== null ? [evals[index]] : evals;
 
         let html = `
-            <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid ${PRIMARY_COLOR}; padding-bottom: 10px;">
-                <h1 style="color: ${PRIMARY_COLOR}; margin: 0;">${APP_NAME}</h1>
+            <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #911B2B; padding-bottom: 10px;">
+                <h1 style="color: #911B2B; margin: 0;">'+APP_NAME+'</h1>
                 <p style="color: #666; margin: 5px 0;">Relatório de Avaliação Física</p>
             </div>
 
@@ -7987,12 +7980,12 @@ Equipa ${APP_NAME}`;
         evalsToPrint.forEach((ev) => {
             html += `
                 <div style="margin-bottom: 30px; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; page-break-inside: avoid;">
-                    <div style="background: ${PRIMARY_COLOR}; color: white; padding: 10px 15px; font-weight: bold; font-size: 16px; display: flex; justify-content: space-between;">
+                    <div style="background: #911B2B; color: white; padding: 10px 15px; font-weight: bold; font-size: 16px; display: flex; justify-content: space-between;">
                         <span>Avaliação de ${ev.date}</span>
                     </div>
                     
                     <div style="padding: 15px;">
-                        <h4 style="color: ${PRIMARY_COLOR}; margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 5px; text-transform: uppercase; font-size: 12px;">Bioimpedância</h4>
+                        <h4 style="color: #911B2B; margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 5px; text-transform: uppercase; font-size: 12px;">Bioimpedância</h4>
                         <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 13px;">
                             <tr>
                                 <td style="padding: 6px; border-bottom: 1px solid #f0f0f0; width: 33%;"><strong>Peso:</strong> ${ev.weight || '-'} kg</td>
@@ -8041,8 +8034,8 @@ Equipa ${APP_NAME}`;
         if (!client || !entry) return alert('Registo não encontrado.');
 
         const html = `
-            <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid ${PRIMARY_COLOR}; padding-bottom: 10px;">
-                <h1 style="color: ${PRIMARY_COLOR}; margin: 0;">${APP_NAME}</h1>
+            <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #911B2B; padding-bottom: 10px;">
+                <h1 style="color: #911B2B; margin: 0;">'+APP_NAME+'</h1>
                 <p style="color: #666; margin: 5px 0;">Relatório de Anamnese Física</p>
             </div>
 
@@ -8056,40 +8049,40 @@ Equipa ${APP_NAME}`;
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
                 <div style="border:1px solid #eee; padding:15px; border-radius:8px;">
-                     <h4 style="color:${PRIMARY_COLOR}; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Perfil Geral</h4>
+                     <h4 style="color:#911B2B; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Perfil Geral</h4>
                      <p style="font-size:13px; margin:8px 0;"><strong>Objetivo:</strong> ${entry.objective || '-'}</p>
                      <p style="font-size:13px; margin:8px 0;"><strong>Nível Atividade:</strong> ${entry.activityLevel || '-'}</p>
                      <p style="font-size:13px; margin:8px 0;"><strong>Fumador:</strong> ${entry.isSmoker || '-'}</p>
                 </div>
                 <div style="border:1px solid #eee; padding:15px; border-radius:8px;">
-                     <h4 style="color:${PRIMARY_COLOR}; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Dados Médicos</h4>
+                     <h4 style="color:#911B2B; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Dados Médicos</h4>
                      <p style="font-size:13px; margin:8px 0;"><strong>Alergias:</strong> ${entry.allergies || '-'}</p>
                      <p style="font-size:13px; margin:8px 0;"><strong>Histórico Familiar:</strong> ${entry.familyHistory || '-'}</p>
                 </div>
             </div>
 
             <div style="margin-top:20px; border:1px solid #eee; padding:15px; border-radius:8px;">
-                <h4 style="color:${PRIMARY_COLOR}; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Histórico de Saúde</h4>
+                <h4 style="color:#911B2B; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Histórico de Saúde</h4>
                 <div style="font-size:13px; white-space:pre-wrap; line-height:1.5;">${entry.healthHistory || 'Sem dados registados.'}</div>
             </div>
 
             <div style="margin-top:20px; border:1px solid #eee; padding:15px; border-radius:8px;">
-                <h4 style="color:${PRIMARY_COLOR}; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Cirurgias e Lesões</h4>
+                <h4 style="color:#911B2B; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Cirurgias e Lesões</h4>
                 <div style="font-size:13px; white-space:pre-wrap; line-height:1.5;">${entry.surgeriesInjuries || 'Sem dados registados.'}</div>
             </div>
 
             <div style="margin-top:20px; border:1px solid #eee; padding:15px; border-radius:8px;">
-                <h4 style="color:${PRIMARY_COLOR}; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Medicação</h4>
+                <h4 style="color:#911B2B; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Medicação</h4>
                 <div style="font-size:13px; line-height:1.5;">${entry.medications || 'Nenhuma.'}</div>
             </div>
 
             <div style="margin-top:20px; border:1px solid #eee; padding:15px; border-radius:8px;">
-                <h4 style="color:${PRIMARY_COLOR}; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Observações</h4>
+                <h4 style="color:#911B2B; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Observações</h4>
                 <div style="font-size:13px; white-space:pre-wrap; line-height:1.5;">${entry.observations || '-'}</div>
             </div>
 
             <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #999;">
-                <p>Gerado por ${APP_NAME} App</p>
+                <p>Gerado por SimpleFit App</p>
             </div>
         `;
 
@@ -8974,7 +8967,7 @@ Equipa ${APP_NAME}`;
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 let errorMsg = "O seu navegador não suporta acesso áÂ  câmara.";
                 if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-                    errorMsg = "ERRO DE SEGURANÇA: O scanner live só funciona em ligações seguras (HTTPS disponível em " + APP_NAME + ".com). Sugerimos usar o botão 'Tirar Foto' ou 'Entrada Manual'.";
+                    errorMsg = "ERRO DE SEGURANÇA: O scanner live só funciona em ligações seguras (HTTPS disponível em '+APP_NAME+'.com). Sugerimos usar o botão 'Tirar Foto' ou 'Entrada Manual'.";
                 }
                 throw new Error(errorMsg);
             }
@@ -10587,8 +10580,8 @@ Equipa ${APP_NAME}`;
         const c = this.state.clients.find(cl => cl.id == clientId);
         if (!c) return;
 
-        const appUrl = location.origin + location.pathname;
-        const message = `Olá ${c.name}, o seu professor atualizou o seu ${topic} no ${APP_NAME}! Aceda aqui para ver: ${appUrl}`;
+        const appUrl = "https://kandalspahealthclub.github.io/'+APP_NAME+'/";
+        const message = `Olá ${c.name}, o seu professor atualizou o seu ${topic} no '+APP_NAME+'! Aceda aqui para ver: ${appUrl}`;
 
         if (type === 'whatsapp') {
             let phone = (c.phone || '').replace(/\s/g, '').replace('+', '');
@@ -10604,7 +10597,7 @@ Equipa ${APP_NAME}`;
         } else if (type === 'email') {
             const email = c.email;
             if (!email) return alert('O cliente não tem e-mail registado!');
-            const mailUrl = `mailto:${email}?subject=${APP_NAME} - Atualização de ${topic}&body=${encodeURIComponent(message)}`;
+            const mailUrl = `mailto:${email}?subject='+APP_NAME+' - Atualização de ${topic}&body=${encodeURIComponent(message)}`;
             window.location.href = mailUrl;
         }
     }
