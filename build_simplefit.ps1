@@ -89,7 +89,7 @@ $content = $content.Replace("'Kandal123'", "APP_NAME + '123'")
 $content = $content.Replace("<strong>Kandal123</strong>", "<strong>' + APP_NAME + '123</strong>")
 
 # 9. Default emails @kandalgym.pt to @ + APP_NAME.toLowerCase() + '.pt'
-$content = $content.Replace("@kandalgym.pt", "@' + APP_NAME.toLowerCase().Replace(' ', '') + '.pt'")
+$content = $content.Replace("@kandalgym.pt", "@' + APP_NAME.toLowerCase().replace(' ', '') + '.pt'")
 
 # 10. Title of the monitor window in single quotes (fix template bug)
 $content = $content.Replace("'<html><head><title>KandalGym - Monitor de Acesso</title>'", "'<html><head><title>' + APP_NAME + ' - Monitor de Acesso</title>'")
@@ -103,124 +103,66 @@ $content = $content.Replace("KandalMonitor", "'+APP_NAME+'Monitor")
 # Dynamic app URLs
 $content = $content.Replace("https://kandalspahealthclub.github.io/KandalGym/", "' + window.location.origin + window.location.pathname + '")
 
-# 12. Modify handleLogin for failsafe local fallback authentication
-$origHandleLogin = @'
-    async handleLogin() {
-        const emailInput = document.getElementById('login-email');
-        const passInput = document.getElementById('login-pass');
-        const errorDiv = document.getElementById('login-error-msg');
-        const loginBtn = document.querySelector('.login-form button[type="submit"]');
+# 12. Injeção cirúrgica do Failsafe Bypass no handleLogin()
+$origHandleStart = '    async handleLogin() {
+        const emailInput = document.getElementById(''login-email'');
+        const passInput = document.getElementById(''login-pass'');
+        const errorDiv = document.getElementById(''login-error-msg'');
+        const loginBtn = document.querySelector(''.login-form button[type="submit"]'');'
 
-        if (errorDiv) errorDiv.style.display = 'none';
+$newHandleStart = '    async handleLogin() {
+        const emailInput = document.getElementById(''login-email'');
+        const passInput = document.getElementById(''login-pass'');
+        const errorDiv = document.getElementById(''login-error-msg'');
+        const loginBtn = document.querySelector(''.login-form button[type="submit"]'');
+
+        if (errorDiv) errorDiv.style.display = ''none'';
         if (!emailInput || !passInput) return;
 
         const email = emailInput.value.trim().toLowerCase();
         const pass = passInput.value;
-        const rememberEl = document.getElementById('remember-me');
+        const rememberEl = document.getElementById(''remember-me'');
         const rememberMe = rememberEl ? rememberEl.checked : false;
 
         if (!email || !pass) {
             if (errorDiv) {
-                errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Por favor, preencha todos os campos.';
-                errorDiv.style.display = 'block';
+                errorDiv.innerHTML = ''<i class="fas fa-exclamation-circle"></i> Por favor, preencha todos os campos.'';
+                errorDiv.style.display = ''block'';
             }
             return;
         }
 
-        if (loginBtn) { loginBtn.disabled = true; loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A entrar...'; }
+        if (loginBtn) { loginBtn.disabled = true; loginBtn.innerHTML = ''<i class="fas fa-spinner fa-spin"></i> A entrar...''; }
 
-        try {
-            // Configurar persistencia de sessao
-            await this.auth.setPersistence(
-                rememberMe ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION
-            );
-
-            try {
-                // Tentativa 1: Firebase Auth (utilizadores ja migrados)
-                await this.auth.signInWithEmailAndPassword(email, pass);
-            } catch (authError) {
-                // Tentativa 2: Migracao automatica (primeiro login apos implementar Firebase Auth)
-                const allUsers = [
-                    ...(this.state.admins || []),
-                    ...(this.state.teachers || []),
-                    ...(this.state.clients || [])
-                ];
-                const legacyUser = allUsers.find(u =>
-                    (u.email || '').toLowerCase() === email && u.password === pass
-                );
-
-                if (legacyUser) {
-                    try {
-                        // Criar conta Firebase Auth e migrar automaticamente
-                        await this.auth.createUserWithEmailAndPassword(email, pass);
-                        console.log('Utilizador migrado para Firebase Auth:', email);
-                    } catch (createError) {
-                        if (createError.code === 'auth/email-already-in-use') {
-                            // Esta no Firebase Auth mas password errada
-                            throw { code: 'auth/wrong-password' };
-                        }
-                        throw createError;
-                    }
-                } else {
-                    throw { code: 'auth/wrong-password' };
-                }
-            }
-'@
-
-$newHandleLogin = @'
-    async handleLogin() {
-        const emailInput = document.getElementById('login-email');
-        const passInput = document.getElementById('login-pass');
-        const errorDiv = document.getElementById('login-error-msg');
-        const loginBtn = document.querySelector('.login-form button[type="submit"]');
-
-        if (errorDiv) errorDiv.style.display = 'none';
-        if (!emailInput || !passInput) return;
-
-        const email = emailInput.value.trim().toLowerCase();
-        const pass = passInput.value;
-        const rememberEl = document.getElementById('remember-me');
-        const rememberMe = rememberEl ? rememberEl.checked : false;
-
-        if (!email || !pass) {
-            if (errorDiv) {
-                errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Por favor, preencha todos os campos.';
-                errorDiv.style.display = 'block';
-            }
-            return;
-        }
-
-        if (loginBtn) { loginBtn.disabled = true; loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A entrar...'; }
-
-        // Failsafe 1: Entrada local instantânea para o Administrador Master (suporta 'admin' ou 'admin123')
-        if (email === APP_EMAIL && (pass === 'admin' || pass === 'admin123')) {
+        // Failsafe 1: Entrada local instantânea para o Administrador Master (suporta ''admin'' ou ''admin123'')
+        if (email === APP_EMAIL && (pass === ''admin'' || pass === ''admin123'')) {
             console.log("Local master admin login bypass triggered successfully.");
             
             // Garantir que existe no estado
             if (!this.state.admins) this.state.admins = [];
-            let admin = this.state.admins.find(a => (a.email || '').toLowerCase() === APP_EMAIL);
+            let admin = this.state.admins.find(a => (a.email || '''').toLowerCase() === APP_EMAIL);
             if (!admin) {
-                admin = { id: 1, name: APP_NAME + ' Master', email: APP_EMAIL, password: pass, role: 'admin' };
+                admin = { id: 1, name: APP_NAME + '' Master'', email: APP_EMAIL, password: pass, role: ''admin'' };
                 this.state.admins.push(admin);
             }
             
-            this.role = 'admin';
-            admin.lastLogin = new Date().toLocaleString('pt-PT');
+            this.role = ''admin'';
+            admin.lastLogin = new Date().toLocaleString(''pt-PT'');
             this.currentUser = admin;
             this.isLoggedIn = true;
 
             if (rememberMe) {
-                localStorage.setItem(LS_PREFIX + 'remember', 'true');
-                localStorage.setItem(LS_PREFIX + 'saved_creds', JSON.stringify({ email: email }));
+                localStorage.setItem(LS_PREFIX + ''remember'', ''true'');
+                localStorage.setItem(LS_PREFIX + ''saved_creds'', JSON.stringify({ email: email }));
             } else {
-                localStorage.removeItem(LS_PREFIX + 'remember');
-                localStorage.removeItem(LS_PREFIX + 'saved_creds');
+                localStorage.removeItem(LS_PREFIX + ''remember'');
+                localStorage.removeItem(LS_PREFIX + ''saved_creds'');
             }
 
             // Tentar migrar ou fazer login no Firebase Auth de fundo (não bloqueante)
             if (this.auth) {
                 this.auth.signInWithEmailAndPassword(email, pass).catch(async (fbErr) => {
-                    if (fbErr.code === 'auth/user-not-found' || fbErr.code === 'auth/invalid-credential' || fbErr.code === 'auth/invalid-login-credentials') {
+                    if (fbErr.code === ''auth/user-not-found'' || fbErr.code === ''auth/invalid-credential'' || fbErr.code === ''auth/invalid-login-credentials'') {
                         try {
                             if (pass.length >= 6) {
                                 await this.auth.createUserWithEmailAndPassword(email, pass);
@@ -235,55 +177,23 @@ $newHandleLogin = @'
             this.saveState();
             this.persistLogin();
             this.renderAppInterface();
-            if (loginBtn) { loginBtn.disabled = false; loginBtn.innerHTML = 'Entrar <i class="fas fa-arrow-right"></i>'; }
+            if (loginBtn) { loginBtn.disabled = false; loginBtn.innerHTML = ''Entrar <i class="fas fa-arrow-right"></i>''; }
             return;
-        }
+        }'
 
-        try {
-            // Configurar persistencia de sessao
-            await this.auth.setPersistence(
-                rememberMe ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION
-            );
+# Remove all CRLF to ensure matching compatibility
+$contentNormalized = $content.Replace("`r`n", "`n")
+$origHandleStartNormalized = $origHandleStart.Replace("`r`n", "`n")
+$newHandleStartNormalized = $newHandleStart.Replace("`r`n", "`n")
 
-            try {
-                // Tentativa 1: Firebase Auth (utilizadores ja migrados)
-                await this.auth.signInWithEmailAndPassword(email, pass);
-            } catch (authError) {
-                // Tentativa 2: Migracao automatica ou Login Local Failsafe (se a password bater certo com o banco)
-                const allUsers = [
-                    ...(this.state.admins || []),
-                    ...(this.state.teachers || []),
-                    ...(this.state.clients || [])
-                ];
-                const legacyUser = allUsers.find(u =>
-                    (u.email || '').toLowerCase() === email && u.password === pass
-                );
-
-                if (legacyUser) {
-                    try {
-                        // Tentar migrar para o Firebase Auth se a senha for válida (>= 6 chars)
-                        if (pass.length >= 6) {
-                            await this.auth.createUserWithEmailAndPassword(email, pass);
-                            console.log('Utilizador migrado para Firebase Auth:', email);
-                        } else {
-                            console.warn('Password demasiado curta para Firebase Auth. Acesso concedido localmente.');
-                        }
-                    } catch (createError) {
-                        if (createError.code === 'auth/email-already-in-use') {
-                            console.log('Utilizador já está no Firebase Auth, permitindo login local alternativo.');
-                        } else {
-                            console.warn('Erro ao registar utilizador no Firebase Auth, procedendo localmente:', createError.message);
-                        }
-                    }
-                    // IMPORTANTE: Se encontrou o utilizador no estado local com a senha correta, deixamos entrar!
-                    console.log("Login local falback efetuado com sucesso.");
-                } else {
-                    throw { code: 'auth/wrong-password' };
-                }
-            }
-'@
-
-$content = $content.Replace($origHandleLogin, $newHandleLogin)
+if ($contentNormalized.Contains($origHandleStartNormalized)) {
+    $contentNormalized = $contentNormalized.Replace($origHandleStartNormalized, $newHandleStartNormalized)
+    # Restore standard Windows CRLF line endings
+    $content = $contentNormalized.Replace("`n", "`r`n")
+} else {
+    Write-Warning "Failed to inject handleLogin bypass with normalized line endings. Trying raw match."
+    $content = $content.Replace($origHandleStart, $newHandleStart)
+}
 
 [System.IO.File]::WriteAllText($path, $content, [System.Text.Encoding]::UTF8)
 Write-Output "PowerShell build script executed successfully!"

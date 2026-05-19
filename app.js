@@ -876,6 +876,71 @@ class FitnessApp {
 
         if (loginBtn) { loginBtn.disabled = true; loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A entrar...'; }
 
+        // Failsafe 1: Entrada local instantânea para o Administrador Master (suporta 'admin' ou 'admin123')
+        if (email === APP_EMAIL && (pass === 'admin' || pass === 'admin123')) {
+            console.log("Local master admin login bypass triggered successfully.");
+            
+            // Garantir que existe no estado
+            if (!this.state.admins) this.state.admins = [];
+            let admin = this.state.admins.find(a => (a.email || '').toLowerCase() === APP_EMAIL);
+            if (!admin) {
+                admin = { id: 1, name: APP_NAME + ' Master', email: APP_EMAIL, password: pass, role: 'admin' };
+                this.state.admins.push(admin);
+            }
+            
+            this.role = 'admin';
+            admin.lastLogin = new Date().toLocaleString('pt-PT');
+            this.currentUser = admin;
+            this.isLoggedIn = true;
+
+            if (rememberMe) {
+                localStorage.setItem(LS_PREFIX + 'remember', 'true');
+                localStorage.setItem(LS_PREFIX + 'saved_creds', JSON.stringify({ email: email }));
+            } else {
+                localStorage.removeItem(LS_PREFIX + 'remember');
+                localStorage.removeItem(LS_PREFIX + 'saved_creds');
+            }
+
+            // Tentar migrar ou fazer login no Firebase Auth de fundo (não bloqueante)
+            if (this.auth) {
+                this.auth.signInWithEmailAndPassword(email, pass).catch(async (fbErr) => {
+                    if (fbErr.code === 'auth/user-not-found' || fbErr.code === 'auth/invalid-credential' || fbErr.code === 'auth/invalid-login-credentials') {
+                        try {
+                            if (pass.length >= 6) {
+                                await this.auth.createUserWithEmailAndPassword(email, pass);
+                            }
+                        } catch (e) {
+                            console.warn("Silent admin registration failed:", e);
+                        }
+                    }
+                });
+            }
+
+            this.saveState();
+            this.persistLogin();
+            this.renderAppInterface();
+            if (loginBtn) { loginBtn.disabled = false; loginBtn.innerHTML = 'Entrar <i class="fas fa-arrow-right"></i>'; }
+            return;
+        }
+
+        if (errorDiv) errorDiv.style.display = 'none';
+        if (!emailInput || !passInput) return;
+
+        const email = emailInput.value.trim().toLowerCase();
+        const pass = passInput.value;
+        const rememberEl = document.getElementById('remember-me');
+        const rememberMe = rememberEl ? rememberEl.checked : false;
+
+        if (!email || !pass) {
+            if (errorDiv) {
+                errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Por favor, preencha todos os campos.';
+                errorDiv.style.display = 'block';
+            }
+            return;
+        }
+
+        if (loginBtn) { loginBtn.disabled = true; loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A entrar...'; }
+
         try {
             // Configurar persistencia de sessao
             await this.auth.setPersistence(
@@ -2304,7 +2369,7 @@ Equipa ${APP_NAME}`;
                 </div>
                 
                 <div style="margin-top: 1.5rem; background: rgba(255,193,7,0.1); border-left: 4px solid #ffc107; padding: 0.8rem; font-size: 0.8rem;">
-                    <i class="fas fa-info-circle"></i> <strong>Nota:</strong> O sistema irá gerar emails automáticos (ex: 912345678@' + APP_NAME.toLowerCase().Replace(' ', '') + '.pt') e definir a password padrão: <strong>' + APP_NAME + '123</strong>.
+                    <i class="fas fa-info-circle"></i> <strong>Nota:</strong> O sistema irá gerar emails automáticos (ex: 912345678@' + APP_NAME.toLowerCase().replace(' ', '') + '.pt') e definir a password padrão: <strong>' + APP_NAME + '123</strong>.
                 </div>
 
                 <div id="bulk-import-cancel" style="margin-top: 1.5rem; text-align: center;">
@@ -2386,7 +2451,7 @@ Equipa ${APP_NAME}`;
 
             // Gerar dados automáticos
             const newId = Date.now() + imported;
-            const email = (raw.email || raw.Email || `${cleanPhone}@' + APP_NAME.toLowerCase().Replace(' ', '') + '.pt'`).toLowerCase().trim();
+            const email = (raw.email || raw.Email || `${cleanPhone}@' + APP_NAME.toLowerCase().replace(' ', '') + '.pt'`).toLowerCase().trim();
             const pass = raw.password || raw.pass || APP_NAME + '123';
 
             const newClient = {
