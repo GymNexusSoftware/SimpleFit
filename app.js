@@ -2509,7 +2509,17 @@ Equipa '+APP_NAME+'`;
         const monitorWindow = window.open('', ''+APP_NAME+'Monitor', 'width=1200,height=800');
         if (!monitorWindow) return alert("Por favor, permita pop-ups para abrir o monitor.");
 
-        const css = ':root { --primary: #6366f1; --secondary: #10b981; --danger: #ef4444; --bg: #0f172a; --text: #f8fafc; } ' +
+        let primaryRgb = '255, 255, 255';
+        const hex = PRIMARY_COLOR;
+        if (hex && hex.startsWith('#')) {
+            const clean = hex.slice(1);
+            if (clean.length === 3) {
+                primaryRgb = parseInt(clean[0] + clean[0], 16) + ', ' + parseInt(clean[1] + clean[1], 16) + ', ' + parseInt(clean[2] + clean[2], 16);
+            } else if (clean.length === 6) {
+                primaryRgb = parseInt(clean.substring(0, 2), 16) + ', ' + parseInt(clean.substring(2, 4), 16) + ', ' + parseInt(clean.substring(4, 6), 16);
+            }
+        }
+        const css = ':root { --primary: ' + PRIMARY_COLOR + '; --primary-rgb: ' + primaryRgb + '; --secondary: #10b981; --danger: #ef4444; --bg: ' + (typeof AppConfig !== 'undefined' ? AppConfig.theme.background : '#000000') + '; --text: #f8fafc; } ' +
             'body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: \'Outfit\', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; } ' +
             '.container { text-align: center; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.5s ease; } ' +
             '.logo { width: 400px; opacity: 0.8; animation: pulse 3s infinite ease-in-out; } ' +
@@ -2531,7 +2541,7 @@ Equipa '+APP_NAME+'`;
             '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">' +
             '<style>' + css + '</style></head><body>' +
             '<div id="display-container" class="container">' +
-            '<div id="standby" class="logo"><img src="logo.png" style="width:100%; filter: drop-shadow(0 0 30px rgba(99,102,241,0.3));"></div>' +
+            '<div id="standby" class="logo"><img src="logo.png" style="width:100%; filter: drop-shadow(0 0 30px rgba(' + primaryRgb + ',0.3));"></div>' +
             '<div id="user-display" class="user-card">' +
             '<div id="user-photo-frame" class="photo-frame"><img id="user-photo" src="" style="display:none;"><i id="user-icon" class="fas fa-user"></i></div>' +
             '<h1 id="user-name" class="name">NOME DO CLIENTE</h1>' +
@@ -2541,7 +2551,7 @@ Equipa '+APP_NAME+'`;
             '<input type="text" id="monitor-scanner-input" autocomplete="off" style="position:fixed; top:-100px; left:-100px; opacity:0;">' +
 
             '<script>' +
-            'const bc = new BroadcastChannel(LS_PREFIX + 'access'); let timeout; ' +
+            'const bc = new BroadcastChannel("' + LS_PREFIX + 'access"); let timeout; ' +
             'const hwInput = document.getElementById("monitor-scanner-input"); ' +
 
             'hwInput.onkeyup = (e) => { ' +
