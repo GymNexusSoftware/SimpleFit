@@ -4,53 +4,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fitness App</title>
+    <title>SimpleFit - Personal Trainer & Planeamento</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=27">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css?v=30">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0a0a0a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Fitness App">
-    <link id="app-apple-icon" rel="apple-touch-icon" href="logo.png">
+    <meta name="apple-mobile-web-app-title" content="SimpleFit">
+    <link rel="apple-touch-icon" href="logo.png">
 
-    <!-- Configurações base -->
+    <!-- Configurações base e injeção dinâmica do SimpleFit -->
     <script src="config.js"></script>
     <script>
-        // Aplicar configurações dinâmicas de estilo
         document.addEventListener("DOMContentLoaded", function() {
             if (typeof AppConfig !== 'undefined') {
                 document.title = AppConfig.appTitle;
                 const root = document.documentElement;
-                root.style.setProperty('--cfg-primary', AppConfig.theme.primary);
-                root.style.setProperty('--cfg-primary-hover', AppConfig.theme.primaryHover);
-                root.style.setProperty('--cfg-bg', AppConfig.theme.background);
+                
+                // Aplicar variáveis CSS dinâmicas baseadas no tema do SimpleFit
+                root.style.setProperty('--primary', AppConfig.theme.primary);
+                root.style.setProperty('--primary-hover', AppConfig.theme.primaryHover);
+                root.style.setProperty('--background', AppConfig.theme.background);
+                
+                // Converter cor primária hexadecimal em RGB para suporte a sombras e opacidade
+                const hex = AppConfig.theme.primary;
+                let r = 255, g = 255, b = 255;
+                if (hex && hex.startsWith('#')) {
+                    const clean = hex.slice(1);
+                    if (clean.length === 3) {
+                        r = parseInt(clean[0] + clean[0], 16);
+                        g = parseInt(clean[1] + clean[1], 16);
+                        b = parseInt(clean[2] + clean[2], 16);
+                    } else if (clean.length === 6) {
+                        r = parseInt(clean.substring(0, 2), 16);
+                        g = parseInt(clean.substring(2, 4), 16);
+                        b = parseInt(clean.substring(4, 6), 16);
+                    }
+                }
+                root.style.setProperty('--primary-rgb', `${r}, ${g}, ${b}`);
+
                 if (AppConfig.theme.textOnPrimary) {
                     root.style.setProperty('--cfg-text-on-primary', AppConfig.theme.textOnPrimary);
                 }
-                if (AppConfig.heroPath) {
-                    root.style.setProperty('--cfg-hero', "url('" + AppConfig.heroPath + "')");
-                }
                 
-                const appleIcon = document.getElementById('app-apple-icon');
+                const appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
                 if (appleIcon && AppConfig.logoPath) appleIcon.href = AppConfig.logoPath;
                 
-                const logoImg = document.getElementById('app-logo-img');
-                if (logoImg && AppConfig.logoPath) logoImg.src = AppConfig.logoPath;
-                
-                const loginLogoImg = document.querySelector('.login-hero .logo img');
-                if (loginLogoImg && AppConfig.logoPath) loginLogoImg.src = AppConfig.logoPath;
+                const metaTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+                if (metaTitle && AppConfig.appName) metaTitle.content = AppConfig.appName;
+
+                const logoImg = document.querySelector('.logo img');
+                if (logoImg && AppConfig.logoPath) {
+                    logoImg.src = AppConfig.logoPath;
+                    logoImg.alt = AppConfig.appName + " Logo";
+                }
             }
         });
     </script>
-
+ 
     <!-- Firebase SDKs (Versão Compat) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
+    <!-- QR Code & Scanner Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -59,7 +84,7 @@
     <div id="app" style="display: none; opacity: 0; transition: opacity 0.5s ease;">
         <header class="glass-panel">
             <div class="logo">
-                <img id="app-logo-img" src="logo.png" alt="App Logo">
+                <img src="logo.png" alt="KandalGym Logo">
             </div>
             <div class="user-profile" id="user-profile-header"></div>
         </header>
@@ -73,9 +98,8 @@
         </main>
     </div>
 
-    <script src="config.js"></script>
     <script src="data.js"></script>
-    <script src="app.js?v=113"></script>
+    <script src="app.js?v=612"></script>
 </body>
 
 </html>

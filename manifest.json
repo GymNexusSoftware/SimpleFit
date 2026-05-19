@@ -1,11 +1,11 @@
-﻿{
-    "name": "Fitness App",
-    "short_name": "Fitness App",
+{
+    "name": "SimpleFit",
+    "short_name": "SimpleFit",
     "start_url": "./index.html",
     "display": "standalone",
     "background_color": "#0a0a0a",
     "theme_color": "#0a0a0a",
-    "description": "Plataforma de Personal Training e Nutrição Fitness App",
+    "description": "Plataforma de Personal Training e Nutrição SimpleFit",
     "orientation": "portrait",
     "icons": [
         {
