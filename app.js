@@ -1,4 +1,11 @@
-﻿window.onerror = function (message, source, lineno, colno, error) {
+﻿// Dynamic configurations derived from AppConfig
+const APP_NAME = typeof AppConfig !== 'undefined' ? AppConfig.appName : 'SimpleFit';
+const APP_EMAIL = typeof AppConfig !== 'undefined' ? AppConfig.defaultAdminEmail : 'admin@simplefit.com';
+const PRIMARY_COLOR = typeof AppConfig !== 'undefined' ? AppConfig.theme.primary : '#ffffff';
+const PRIMARY_HOVER = typeof AppConfig !== 'undefined' ? AppConfig.theme.primaryHover : '#e5e5e5';
+const LS_PREFIX = typeof AppConfig !== 'undefined' ? AppConfig.appName.toLowerCase().replace(/\s/g, '_') + '_' : 'simplefit_';
+const DB_STATE_REF = typeof AppConfig !== 'undefined' ? AppConfig.appName.toLowerCase().replace(/\s/g, '') + 'State' : 'simplefitState';
+window.onerror = function (message, source, lineno, colno, error) {
     console.error("Erro detectado:", message, "em", source, ":", lineno);
     
     // Se o erro for "Script error." com linha 0, é geralmente um erro de CORS ou falha de carregamento de CDN
@@ -28,7 +35,7 @@
                 </div>
                 <div style="display:grid; gap:10px;">
                     <button class="btn btn-primary" onclick="location.reload()">Recarregar Página</button>
-                    <button class="btn btn-secondary" onclick="localStorage.removeItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_session'); location.reload()">Limpar Sessão & Reset</button>
+                    <button class="btn btn-secondary" onclick="localStorage.removeItem(LS_PREFIX + 'session'); location.reload()">Limpar Sessão & Reset</button>
                 </div>
             </div>
         `;
@@ -39,7 +46,7 @@
 class FitnessApp {
     constructor() {
         this.appVersion = '2026.05.06.v90'; // Versão de controlo para Hard Reset v90
-        this.viewingDayIdx = Number(localStorage.getItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_vIdx') || 0); // Recuperar plano ativo
+        this.viewingDayIdx = Number(localStorage.getItem(LS_PREFIX + 'vIdx') || 0); // Recuperar plano ativo
         this.checkForForceUpdate();
 
         this.role = 'client';
@@ -67,7 +74,7 @@ class FitnessApp {
         this.editingRecipeData = { name: '', description: '', videoUrl: '', ingredients: [] };
 
         // Tentar carregar estado do LocalStorage como cache inicial
-        const cachedState = localStorage.getItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_state');
+        const cachedState = localStorage.getItem(LS_PREFIX + 'state');
         if (cachedState) {
             try {
                 this.state = JSON.parse(cachedState);
@@ -85,7 +92,7 @@ class FitnessApp {
         vitalDicts.forEach(d => { if (!this.state[d]) this.state[d] = {}; });
 
         this.shownNotifications = JSON.parse(localStorage.getItem('shown_notifications') || '[]');
-        this.lastChatCheck = Number(localStorage.getItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_last_chat_check') || 0);
+        this.lastChatCheck = Number(localStorage.getItem(LS_PREFIX + 'last_chat_check') || 0);
         this.isLoggedIn = false;
         this.currentUser = null;
 
@@ -105,7 +112,7 @@ class FitnessApp {
             this.db = firebase.database();
             this.auth = firebase.auth(); // Firebase Authentication
             this.currentQRMsg = null;
-            this.dbRef = this.db.ref(AppConfig.appName.toLowerCase().replace(/\s/g,'') + 'State');
+            this.dbRef = this.db.ref(DB_STATE_REF);
             console.log("Firebase inicializado com autenticacao.");
         } catch (fbErr) {
             console.error("Erro ao inicializar Firebase:", fbErr);
@@ -183,7 +190,7 @@ class FitnessApp {
         this.initGlobalScanner();
 
         // --- CANAL DE COMUNICAÇÃO PARA MONITOR ---
-        this.accessChannel = new BroadcastChannel(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_access');
+        this.accessChannel = new BroadcastChannel(LS_PREFIX + 'access');
         this.accessChannel.onmessage = (ev) => {
             if (ev.data && ev.data.type === 'access_request') {
                 this.processarLeituraQR(ev.data.code);
@@ -242,12 +249,12 @@ class FitnessApp {
     checkForForceUpdate() {
         try {
             const targetV = 'v90'; // Forçar v90 (Template Plans & Mobile Nav Fix)
-            const currentV = localStorage.getItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_v');
+            const currentV = localStorage.getItem(LS_PREFIX + 'v');
             if (currentV !== targetV) {
-                console.warn("Forçando atualização total da App (${AppConfig.appName} v70)...");
-                localStorage.setItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_v', targetV);
-                localStorage.removeItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_session');
-                localStorage.removeItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_state');
+                console.warn("Forçando atualização total da App (${APP_NAME} v70)...");
+                localStorage.setItem(LS_PREFIX + 'v', targetV);
+                localStorage.removeItem(LS_PREFIX + 'session');
+                localStorage.removeItem(LS_PREFIX + 'state');
 
                 if ('caches' in window) {
                     caches.keys().then((names) => {
@@ -466,7 +473,7 @@ class FitnessApp {
         try {
             // Tentar gravar no LocalStorage (cache rapido)
             try {
-                localStorage.setItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_state', JSON.stringify(this.state));
+                localStorage.setItem(LS_PREFIX + 'state', JSON.stringify(this.state));
             } catch (lsError) {
                 console.warn('LocalStorage Quota exceeded');
             }
@@ -474,7 +481,7 @@ class FitnessApp {
             const cleanState = JSON.parse(JSON.stringify(this.state));
             await this.dbRef.set(cleanState);
             // Backup imediato no localStorage para evitar perda de dados local
-            localStorage.setItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_state', JSON.stringify(cleanState));
+            localStorage.setItem(LS_PREFIX + 'state', JSON.stringify(cleanState));
             console.log("Estado guardado com sucesso no Firebase");
         } catch (e) {
             console.error('Firebase Sync error:', e);
@@ -527,9 +534,9 @@ class FitnessApp {
                 }
 
                 // 2. Conta mestre garantida
-                if (!this.state.admins.some(a => a.email === 'admin@simplefit.com')) {
+                if (!this.state.admins.some(a => a.email === APP_EMAIL)) {
                     this.state.admins.push({
-                        id: 1, name: 'SimpleFit Master', email: 'admin@simplefit.com', password: 'admin', role: 'admin'
+                        id: 1, name: APP_NAME + ' Master', email: APP_EMAIL, password: 'admin', role: 'admin'
                     });
                 }
 
@@ -540,7 +547,7 @@ class FitnessApp {
 
                 // 4. Sincronização local e UI
                 try {
-                    localStorage.setItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_state', JSON.stringify(this.state));
+                    localStorage.setItem(LS_PREFIX + 'state', JSON.stringify(this.state));
                 } catch (e) { }
 
                 this.syncSessionWithState();
@@ -678,14 +685,14 @@ class FitnessApp {
         if (loginScreen) loginScreen.style.display = 'flex';
         if (appScreen) appScreen.style.display = 'none';
 
-        const savedCreds = JSON.parse(localStorage.getItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_saved_creds') || '{}');
-        const rememberChecked = localStorage.getItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_remember') === 'true';
+        const savedCreds = JSON.parse(localStorage.getItem(LS_PREFIX + 'saved_creds') || '{}');
+        const rememberChecked = localStorage.getItem(LS_PREFIX + 'remember') === 'true';
 
         loginScreen.innerHTML = `
             <div class="login-card">
                 <div class="login-hero">
                     <div class="logo">
-                        <img src="logo.png" alt="${AppConfig.appName} Logo">
+                        <img src="logo.png" alt="${APP_NAME} Logo">
                     </div>
                     <p>Entre na sua conta para continuar</p>
                 </div>
@@ -725,7 +732,7 @@ class FitnessApp {
             <div class="login-card animate-scale-in">
                 <div class="login-hero">
                     <div class="logo">
-                        <img src="logo.png" alt="${AppConfig.appName} Logo">
+                        <img src="logo.png" alt="${APP_NAME} Logo">
                     </div>
                     <h3>Recuperar Conta</h3>
                     <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.5; margin-top:0.5rem; padding: 0 1rem;">
@@ -820,14 +827,14 @@ class FitnessApp {
             user = allUsers.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
         }
 
-        let message = "Olá ${AppConfig.appName}! Gostaria de solicitar a recuperação da minha palavra-passe.";
+        let message = "Olá " + APP_NAME + "! Gostaria de solicitar a recuperação da minha palavra-passe.";
 
         if (user) {
             // Se encontrarmos o utilizador, enviamos Nome e Email
-            message = `Olá ${AppConfig.appName}! O meu nome é ${user.name}, o meu email é ${user.email} e gostaria de solicitar a recuperação da minha palavra-passe.`;
+            message = `Olá ${APP_NAME}! O meu nome é ${user.name}, o meu email é ${user.email} e gostaria de solicitar a recuperação da minha palavra-passe.`;
         } else if (email) {
             // Se só tivermos o email, enviamos só o email
-            message = `Olá ${AppConfig.appName}! O meu email é ${email} e gostaria de solicitar a recuperação da minha palavra-passe.`;
+            message = `Olá ${APP_NAME}! O meu email é ${email} e gostaria de solicitar a recuperação da minha palavra-passe.`;
         }
 
         const waUrl = `https://wa.me/351963939017?text=${encodeURIComponent(message)}`;
@@ -920,11 +927,11 @@ class FitnessApp {
 
             // Guardar email (sem password) para conveniencia
             if (rememberMe) {
-                localStorage.setItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_remember', 'true');
-                localStorage.setItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_saved_creds', JSON.stringify({ email: email }));
+                localStorage.setItem(LS_PREFIX + 'remember', 'true');
+                localStorage.setItem(LS_PREFIX + 'saved_creds', JSON.stringify({ email: email }));
             } else {
-                localStorage.removeItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_remember');
-                localStorage.removeItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_saved_creds');
+                localStorage.removeItem(LS_PREFIX + 'remember');
+                localStorage.removeItem(LS_PREFIX + 'saved_creds');
             }
 
             this.saveState();
@@ -971,12 +978,12 @@ class FitnessApp {
             currentClientId: this.currentClientId,
             activeView: this.activeView
         };
-        localStorage.setItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_session', JSON.stringify(session));
+        localStorage.setItem(LS_PREFIX + 'session', JSON.stringify(session));
     }
 
     restoreLogin() {
         try {
-            const savedSession = localStorage.getItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_session');
+            const savedSession = localStorage.getItem(LS_PREFIX + 'session');
             if (savedSession && savedSession !== 'null' && savedSession !== 'undefined') {
                 const session = JSON.parse(savedSession);
                 if (session && typeof session === 'object') {
@@ -990,15 +997,15 @@ class FitnessApp {
 
         } catch (e) {
             console.error("Erro ao restaurar sessão:", e);
-            localStorage.removeItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_session');
+            localStorage.removeItem(LS_PREFIX + 'session');
         }
     }
 
     handleLogout() {
         this.isLoggedIn = false;
         this.currentUser = null;
-        localStorage.removeItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_session');
-        localStorage.removeItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_saved_creds');
+        localStorage.removeItem(LS_PREFIX + 'session');
+        localStorage.removeItem(LS_PREFIX + 'saved_creds');
         if (this.auth) this.auth.signOut().catch(() => { });
         window.location.reload();
     }
@@ -1305,11 +1312,11 @@ class FitnessApp {
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
 
-        const subject = `Bem-vindo a ${AppConfig.appName} - ${name}`;
+        const subject = `Bem-vindo a ${APP_NAME} - ${name}`;
         const body = `Olá ${name},
-A sua conta de ${label} na ${AppConfig.appName} foi criada com sucesso!
+A sua conta de ${label} na ${APP_NAME} foi criada com sucesso!
 Esta App ainda encontra-se em fase de teste, mas poderá já usufruir de várias funcionalidades como: a marcação de aulas, consulta dos seus planos de treino, avaliações físicas e planos alimentares.
-Poderá aceder a plataforma através do seguinte endereço: ${window.location.origin}/
+Poderá aceder a plataforma através do seguinte endereço: https://kandalspahealthclub.github.io/${APP_NAME}/
 
 *As suas credenciais de acesso são:*
 - *Email:* ${email}
@@ -1319,9 +1326,9 @@ Poderá aceder a plataforma através do seguinte endereço: ${window.location.or
 
 Recomendamos que guarde este link nos seus favoritos ou instale a App no seu telemóvel.
 Bons treinos!
-Equipa ${AppConfig.appName}`;
+Equipa ${APP_NAME}`;
 
-        const whatsappText = `*Bem-vindo a ${AppConfig.appName}*\n` +
+        const whatsappText = `*Bem-vindo a ${APP_NAME}*\n` +
             `---------------------------------------------\n` +
             `Olá *${name}*, a sua conta de *${label}* foi criada!\n` +
             `*CREDENCIAIS DE ACESSO:*\n` +
@@ -1329,7 +1336,7 @@ Equipa ${AppConfig.appName}`;
             `*Password:* ${pass}\n` +
             `*AVISO:* Altere a sua password no menu "Perfil" após o primeiro acesso.\n\n` +
             `_A App está em fase de teste, mas já pode usar a marcação de aulas, os planos de treino e muito mais._\n` +
-            `*Acesso:* ${window.location.origin}/\n` +
+            `*Acesso:* https://kandalspahealthclub.github.io/${APP_NAME}/\n` +
             `Bons treinos!`;
 
         const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -1656,7 +1663,7 @@ Equipa ${AppConfig.appName}`;
         }
         if (view === 'chat') {
             this.lastChatCheck = Date.now();
-            localStorage.setItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_last_chat_check', this.lastChatCheck);
+            localStorage.setItem(LS_PREFIX + 'last_chat_check', this.lastChatCheck);
         }
         this.persistLogin();
         this.renderNavbar();
@@ -2286,7 +2293,7 @@ Equipa ${AppConfig.appName}`;
                 </div>
                 
                 <div style="margin-top: 1.5rem; background: rgba(255,193,7,0.1); border-left: 4px solid #ffc107; padding: 0.8rem; font-size: 0.8rem;">
-                    <i class="fas fa-info-circle"></i> <strong>Nota:</strong> O sistema irá gerar emails automáticos (ex: 912345678@simplefit.pt) e definir a password padrão: <strong>Simple123</strong>.
+                    <i class="fas fa-info-circle"></i> <strong>Nota:</strong> O sistema irá gerar emails automáticos (ex: 912345678@${APP_NAME.toLowerCase()}.pt) e definir a password padrão: <strong>${APP_NAME}123</strong>.
                 </div>
 
                 <div id="bulk-import-cancel" style="margin-top: 1.5rem; text-align: center;">
@@ -2368,8 +2375,8 @@ Equipa ${AppConfig.appName}`;
 
             // Gerar dados automáticos
             const newId = Date.now() + imported;
-            const email = (raw.email || raw.Email || `${cleanPhone}@simplefit.pt`).toLowerCase().trim();
-            const pass = raw.password || raw.pass || "Simple123";
+            const email = (raw.email || raw.Email || `${cleanPhone}@${APP_NAME.toLowerCase()}.pt`).toLowerCase().trim();
+            const pass = raw.password || raw.pass || APP_NAME + '123';
 
             const newClient = {
                 id: newId,
@@ -2418,7 +2425,7 @@ Equipa ${AppConfig.appName}`;
         const a = document.createElement('a');
         const now = new Date().toISOString().split('T')[0];
         a.href = url;
-        a.download = `Backup_Clientes_SimpleFit_${now}.json`;
+        a.download = `Backup_Clientes_${APP_NAME}_${now}.json`;
         a.click();
         URL.revokeObjectURL(url);
     }
@@ -2488,7 +2495,7 @@ Equipa ${AppConfig.appName}`;
     }
 
     openAccessMonitor() {
-        const monitorWindow = window.open('', 'SimpleMonitor', 'width=1200,height=800');
+        const monitorWindow = window.open('', APP_NAME + 'Monitor', 'width=1200,height=800');
         if (!monitorWindow) return alert("Por favor, permita pop-ups para abrir o monitor.");
 
         const css = ':root { --primary: #6366f1; --secondary: #10b981; --danger: #ef4444; --bg: #0f172a; --text: #f8fafc; } ' +
@@ -2508,7 +2515,7 @@ Equipa ${AppConfig.appName}`;
             '@keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } } ' +
             '@keyframes slideUp { from { opacity: 0; transform: translateY(100px); } to { opacity: 1; transform: translateY(0); } }';
 
-        let html = '<html><head><title>SimpleFit - Monitor de Acesso</title>' +
+        let html = '<html><head><title>${APP_NAME} - Monitor de Acesso</title>' +
             '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">' +
             '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">' +
             '<style>' + css + '</style></head><body>' +
@@ -2523,7 +2530,7 @@ Equipa ${AppConfig.appName}`;
             '<input type="text" id="monitor-scanner-input" autocomplete="off" style="position:fixed; top:-100px; left:-100px; opacity:0;">' +
 
             '<script>' +
-            'const bc = new BroadcastChannel(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_access'); let timeout; ' +
+            'const bc = new BroadcastChannel(LS_PREFIX + 'access'); let timeout; ' +
             'const hwInput = document.getElementById("monitor-scanner-input"); ' +
 
             'hwInput.onkeyup = (e) => { ' +
@@ -2859,7 +2866,7 @@ Equipa ${AppConfig.appName}`;
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.state.exercises, null, 2));
         const downloadAnchorNode = document.createElement('a');
         downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", `_Exercicios_Backup_${new Date().toISOString().split('T')[0]}.json`);
+        downloadAnchorNode.setAttribute("download", `${APP_NAME}_Exercicios_Backup_${new Date().toISOString().split('T')[0]}.json`);
         document.body.appendChild(downloadAnchorNode);
         downloadAnchorNode.click();
         downloadAnchorNode.remove();
@@ -3236,7 +3243,7 @@ Equipa ${AppConfig.appName}`;
         if (type === 'email') {
             const emails = clients.map(c => c.email).filter(e => e && e !== 'undefined').join(',');
             if (!emails) return alert('Nenhum dos clientes selecionados possui email registado.');
-            const mailto = `mailto:?bcc=${emails}&subject=%20-%20Comunicado&body=${encodeURIComponent(msg)}`;
+            const mailto = `mailto:?bcc=${emails}&subject=${APP_NAME}%20-%20Comunicado&body=${encodeURIComponent(msg)}`;
             window.location.href = mailto;
         } else if (type === 'whatsapp') {
             // Because Popup blockers prevent multiple WhatsApp tabs, handle it via a guided modal
@@ -3478,7 +3485,7 @@ Equipa ${AppConfig.appName}`;
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.state.foods, null, 2));
         const downloadAnchorNode = document.createElement('a');
         downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", `_Alimentos_Backup_${new Date().toISOString().split('T')[0]}.json`);
+        downloadAnchorNode.setAttribute("download", `${APP_NAME}_Alimentos_Backup_${new Date().toISOString().split('T')[0]}.json`);
         document.body.appendChild(downloadAnchorNode);
         downloadAnchorNode.click();
         downloadAnchorNode.remove();
@@ -4097,14 +4104,14 @@ Equipa ${AppConfig.appName}`;
 
     setViewingDayIdx(idx, clientId) {
         this.viewingDayIdx = idx;
-        localStorage.setItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_vIdx', idx);
+        localStorage.setItem(LS_PREFIX + 'vIdx', idx);
         this.renderTrainingView(null, clientId);
     }
 
     openTrainingEditor(clientId) {
         clientId = Number(clientId);
         // Verificar se existe um rascunho pendente
-        const draft = localStorage.getItem((AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_training_draft');
+        const draft = localStorage.getItem(LS_PREFIX + 'training_draft');
         if (draft) {
             const draftData = JSON.parse(draft);
             if (draftData.clientId === clientId) {
@@ -4115,7 +4122,7 @@ Equipa ${AppConfig.appName}`;
                     this.setView('edit_training');
                     return;
                 } else {
-                    localStorage.removeItem((AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_training_draft');
+                    localStorage.removeItem(LS_PREFIX + 'training_draft');
                 }
             }
         }
@@ -4151,11 +4158,11 @@ Equipa ${AppConfig.appName}`;
             plan: this.editingPlan,
             timestamp: Date.now()
         };
-        localStorage.setItem((AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_training_draft', JSON.stringify(draftData));
+        localStorage.setItem(LS_PREFIX + 'training_draft', JSON.stringify(draftData));
     }
 
     clearTrainingDraft() {
-        localStorage.removeItem((AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_training_draft');
+        localStorage.removeItem(LS_PREFIX + 'training_draft');
     }
 
     savePredefinedDraft() {
@@ -4166,11 +4173,11 @@ Equipa ${AppConfig.appName}`;
             plan: this.editingPlan,
             timestamp: Date.now()
         };
-        localStorage.setItem((AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_predefined_draft', JSON.stringify(draftData));
+        localStorage.setItem(LS_PREFIX + 'predefined_draft', JSON.stringify(draftData));
     }
 
     clearPredefinedDraft() {
-        localStorage.removeItem((AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_predefined_draft');
+        localStorage.removeItem(LS_PREFIX + 'predefined_draft');
     }
 
     updatePredefinedExercise(dayIdx, exIdx, field, value) {
@@ -5950,7 +5957,7 @@ Equipa ${AppConfig.appName}`;
             case 'dashboard':
                 container.innerHTML = `
                     <h2 class="animate-fade-in">Bem-vindo, ${c.name} </h2>
-                    <p style="color:var(--text-muted); margin-bottom:1rem;">Este é o seu painel de acompanhamento .</p>
+                    <p style="color:var(--text-muted); margin-bottom:1rem;">Este é o seu painel de acompanhamento ${APP_NAME}.</p>
                     
                     ${(() => {
                         const t = this.state.teachers.find(teacher => teacher.id === c.teacherId);
@@ -6754,7 +6761,7 @@ Equipa ${AppConfig.appName}`;
         Object.keys(threads).forEach(id => {
             const t = threads[id];
             if (id === 'system') {
-                t.user = { name: 'Sistema ', photoUrl: null, role: 'system' };
+                t.user = { name: 'Sistema ' + APP_NAME, photoUrl: null, role: 'system' };
             } else if (!t.user) {
                 const uid = Number(id);
                 t.user = this.state.clients.find(c => c.id === uid) ||
@@ -6769,7 +6776,7 @@ Equipa ${AppConfig.appName}`;
             }
         });
 
-        // 4. Ordenar threads: Sistema  primeiro (para admin), depois por data, depois alfabetico
+        // 4. Ordenar threads: Sistema ${APP_NAME} primeiro (para admin), depois por data, depois alfabetico
         const sortedThreads = Object.values(threads).sort((a, b) => {
             if (this.role === 'admin') {
                 if (a.id === 'system') return -1;
@@ -7780,8 +7787,8 @@ Equipa ${AppConfig.appName}`;
 
         // 2. Build the HTML content
         let html = `
-            <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid ; padding-bottom: 10px;">
-                <h1 style="color: ; margin: 0;"></h1>
+            <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid ${PRIMARY_COLOR}; padding-bottom: 10px;">
+                <h1 style="color: ${PRIMARY_COLOR}; margin: 0;">${APP_NAME}</h1>
                 <p style="color: #666; margin: 5px 0;">Plano de Treino Personalizado</p>
             </div>
 
@@ -7795,7 +7802,7 @@ Equipa ${AppConfig.appName}`;
         plans.forEach(day => {
             html += `
                 <div style="margin-bottom: 25px;">
-                    <h3 style="background: ; color: white; padding: 10px; margin-bottom: 0; font-size: 16px;">${day.title}</h3>
+                    <h3 style="background: ${PRIMARY_COLOR}; color: white; padding: 10px; margin-bottom: 0; font-size: 16px;">${day.title}</h3>
                     <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
                         <tr style="background: #eee;">
                             <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Exercício</th>
@@ -7827,7 +7834,7 @@ Equipa ${AppConfig.appName}`;
 
         html += `
             <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #999;">
-                <p>Gerado por  App</p>
+                <p>Gerado por ${APP_NAME} App</p>
             </div>
             `;
 
@@ -7864,8 +7871,8 @@ Equipa ${AppConfig.appName}`;
 
         // Build HTML content
         let htmlContent = `
-            <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid ; padding-bottom: 10px;">
-                <h1 style="color: ; margin: 0;"></h1>
+            <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid ${PRIMARY_COLOR}; padding-bottom: 10px;">
+                <h1 style="color: ${PRIMARY_COLOR}; margin: 0;">${APP_NAME}</h1>
                 <p style="color: #666; margin: 5px 0;">Plano Alimentar Personalizado</p>
             </div>
 
@@ -7894,7 +7901,7 @@ Equipa ${AppConfig.appName}`;
                 ` : ''}
             </div>
 
-            <h3 style="color: ; border-bottom: 1px solid #eee; padding-bottom: 5px; margin: 20px 0 15px 0;">${mealPlan.title || 'Plano Alimentar'}</h3>
+            <h3 style="color: ${PRIMARY_COLOR}; border-bottom: 1px solid #eee; padding-bottom: 5px; margin: 20px 0 15px 0;">${mealPlan.title || 'Plano Alimentar'}</h3>
         `;
 
         mealPlan.meals.forEach(m => {
@@ -7908,7 +7915,7 @@ Equipa ${AppConfig.appName}`;
 
             htmlContent += `
                 <div style="margin-bottom: 20px; page-break-inside: avoid;">
-                    <div style="background: ; color: white; padding: 8px 12px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="background: ${PRIMARY_COLOR}; color: white; padding: 8px 12px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
                         <span>${m.time} - ${m.name}</span>
                         ${mN.kcal > 0 ? `<span style="font-size: 12px;">${Math.round(mN.kcal)} kcal</span>` : ''}
                     </div>
@@ -7948,8 +7955,8 @@ Equipa ${AppConfig.appName}`;
         const evalsToPrint = index !== null ? [evals[index]] : evals;
 
         let html = `
-            <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid ; padding-bottom: 10px;">
-                <h1 style="color: ; margin: 0;"></h1>
+            <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid ${PRIMARY_COLOR}; padding-bottom: 10px;">
+                <h1 style="color: ${PRIMARY_COLOR}; margin: 0;">${APP_NAME}</h1>
                 <p style="color: #666; margin: 5px 0;">Relatório de Avaliação Física</p>
             </div>
 
@@ -7962,12 +7969,12 @@ Equipa ${AppConfig.appName}`;
         evalsToPrint.forEach((ev) => {
             html += `
                 <div style="margin-bottom: 30px; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; page-break-inside: avoid;">
-                    <div style="background: ; color: white; padding: 10px 15px; font-weight: bold; font-size: 16px; display: flex; justify-content: space-between;">
+                    <div style="background: ${PRIMARY_COLOR}; color: white; padding: 10px 15px; font-weight: bold; font-size: 16px; display: flex; justify-content: space-between;">
                         <span>Avaliação de ${ev.date}</span>
                     </div>
                     
                     <div style="padding: 15px;">
-                        <h4 style="color: ; margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 5px; text-transform: uppercase; font-size: 12px;">Bioimpedância</h4>
+                        <h4 style="color: ${PRIMARY_COLOR}; margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 5px; text-transform: uppercase; font-size: 12px;">Bioimpedância</h4>
                         <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 13px;">
                             <tr>
                                 <td style="padding: 6px; border-bottom: 1px solid #f0f0f0; width: 33%;"><strong>Peso:</strong> ${ev.weight || '-'} kg</td>
@@ -8016,8 +8023,8 @@ Equipa ${AppConfig.appName}`;
         if (!client || !entry) return alert('Registo não encontrado.');
 
         const html = `
-            <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid ; padding-bottom: 10px;">
-                <h1 style="color: ; margin: 0;"></h1>
+            <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid ${PRIMARY_COLOR}; padding-bottom: 10px;">
+                <h1 style="color: ${PRIMARY_COLOR}; margin: 0;">${APP_NAME}</h1>
                 <p style="color: #666; margin: 5px 0;">Relatório de Anamnese Física</p>
             </div>
 
@@ -8031,40 +8038,40 @@ Equipa ${AppConfig.appName}`;
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
                 <div style="border:1px solid #eee; padding:15px; border-radius:8px;">
-                     <h4 style="color:; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Perfil Geral</h4>
+                     <h4 style="color:${PRIMARY_COLOR}; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Perfil Geral</h4>
                      <p style="font-size:13px; margin:8px 0;"><strong>Objetivo:</strong> ${entry.objective || '-'}</p>
                      <p style="font-size:13px; margin:8px 0;"><strong>Nível Atividade:</strong> ${entry.activityLevel || '-'}</p>
                      <p style="font-size:13px; margin:8px 0;"><strong>Fumador:</strong> ${entry.isSmoker || '-'}</p>
                 </div>
                 <div style="border:1px solid #eee; padding:15px; border-radius:8px;">
-                     <h4 style="color:; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Dados Médicos</h4>
+                     <h4 style="color:${PRIMARY_COLOR}; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Dados Médicos</h4>
                      <p style="font-size:13px; margin:8px 0;"><strong>Alergias:</strong> ${entry.allergies || '-'}</p>
                      <p style="font-size:13px; margin:8px 0;"><strong>Histórico Familiar:</strong> ${entry.familyHistory || '-'}</p>
                 </div>
             </div>
 
             <div style="margin-top:20px; border:1px solid #eee; padding:15px; border-radius:8px;">
-                <h4 style="color:; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Histórico de Saúde</h4>
+                <h4 style="color:${PRIMARY_COLOR}; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Histórico de Saúde</h4>
                 <div style="font-size:13px; white-space:pre-wrap; line-height:1.5;">${entry.healthHistory || 'Sem dados registados.'}</div>
             </div>
 
             <div style="margin-top:20px; border:1px solid #eee; padding:15px; border-radius:8px;">
-                <h4 style="color:; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Cirurgias e Lesões</h4>
+                <h4 style="color:${PRIMARY_COLOR}; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Cirurgias e Lesões</h4>
                 <div style="font-size:13px; white-space:pre-wrap; line-height:1.5;">${entry.surgeriesInjuries || 'Sem dados registados.'}</div>
             </div>
 
             <div style="margin-top:20px; border:1px solid #eee; padding:15px; border-radius:8px;">
-                <h4 style="color:; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Medicação</h4>
+                <h4 style="color:${PRIMARY_COLOR}; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Medicação</h4>
                 <div style="font-size:13px; line-height:1.5;">${entry.medications || 'Nenhuma.'}</div>
             </div>
 
             <div style="margin-top:20px; border:1px solid #eee; padding:15px; border-radius:8px;">
-                <h4 style="color:; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Observações</h4>
+                <h4 style="color:${PRIMARY_COLOR}; margin-top:0; border-bottom:1px solid #eee; padding-bottom:5px; text-transform:uppercase; font-size:12px;">Observações</h4>
                 <div style="font-size:13px; white-space:pre-wrap; line-height:1.5;">${entry.observations || '-'}</div>
             </div>
 
             <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #999;">
-                <p>Gerado por  App</p>
+                <p>Gerado por ${APP_NAME} App</p>
             </div>
         `;
 
@@ -8540,7 +8547,7 @@ Equipa ${AppConfig.appName}`;
         const isStaff = (this.state.teachers || []).some(t => Number(t.id) === Number(user.id));
         const type = isStaff ? 'teacher' : 'client';
 
-        this.showInviteModal(user.name, user.email, user.password || 'Simple123', type, user.phone, qrId);
+        this.showInviteModal(user.name, user.email, user.password || APP_NAME + '123', type, user.phone, qrId);
     }
 
     filterQRList(val) {
@@ -8949,7 +8956,7 @@ Equipa ${AppConfig.appName}`;
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 let errorMsg = "O seu navegador não suporta acesso áÂ  câmara.";
                 if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-                    errorMsg = "ERRO DE SEGURANÇA: O scanner live só funciona em ligações seguras (HTTPS disponível em .com). Sugerimos usar o botão 'Tirar Foto' ou 'Entrada Manual'.";
+                    errorMsg = "ERRO DE SEGURANÇA: O scanner live só funciona em ligações seguras (HTTPS disponível em " + APP_NAME + ".com). Sugerimos usar o botão 'Tirar Foto' ou 'Entrada Manual'.";
                 }
                 throw new Error(errorMsg);
             }
@@ -9151,7 +9158,7 @@ Equipa ${AppConfig.appName}`;
 
         if (!c) {
             this.showQRMsg(" Codigo não reconhecido", "bg-qr-danger");
-            new BroadcastChannel((AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_access')).postMessage({
+            new BroadcastChannel(LS_PREFIX + 'access').postMessage({
                 type: 'access_event',
                 data: { name: 'INVÁLIDOÂLIDO', msg: 'Cáâ€œDIGO DESCONHECIDO', valid: false, photo: null }
             });
@@ -9163,7 +9170,7 @@ Equipa ${AppConfig.appName}`;
 
         if (!c.ativo) {
             this.showQRMsg(` ${c.nome}: Conta Inativa`, "bg-qr-danger");
-            new BroadcastChannel((AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_access')).postMessage({
+            new BroadcastChannel(LS_PREFIX + 'access').postMessage({
                 type: 'access_event',
                 data: { name: c.nome, msg: 'CONTA INATIVA', valid: false, photo: c.photoUrl || null }
             });
@@ -9220,7 +9227,7 @@ Equipa ${AppConfig.appName}`;
             this.showQRMsg(`Até amanhã, ${c.nome}! Saída registada.`, "bg-qr-warning");
             this.showToast(`Saída registada: ${c.nome}`, "info");
 
-            new BroadcastChannel((AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_access')).postMessage({
+            new BroadcastChannel(LS_PREFIX + 'access').postMessage({
                 type: 'access_event',
                 data: { name: c.nome, msg: 'ATÉ AMANHÃ! (SAÍDA)', valid: true, photo: c.photoUrl || null }
             });
@@ -9232,7 +9239,7 @@ Equipa ${AppConfig.appName}`;
                 // Validar data
                 if (hj > (c.validade || '')) {
                     this.showQRMsg(`${c.nome}: Validade Expirada`, "bg-qr-warning");
-                    new BroadcastChannel((AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_access')).postMessage({
+                    new BroadcastChannel(LS_PREFIX + 'access').postMessage({
                         type: 'access_event',
                         data: { name: c.nome, msg: 'VALIDADE EXPIRADA', valid: false, photo: c.photoUrl || null }
                     });
@@ -9243,7 +9250,7 @@ Equipa ${AppConfig.appName}`;
                 // Validar créditos
                 if ((c.ent || 0) <= 0) {
                     this.showQRMsg(`${c.nome}: Sem créditos`, "bg-qr-danger");
-                    new BroadcastChannel((AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_access')).postMessage({
+                    new BroadcastChannel(LS_PREFIX + 'access').postMessage({
                         type: 'access_event',
                         data: { name: c.nome, msg: 'SEM CRÉDITOS', valid: false, photo: c.photoUrl || null }
                     });
@@ -9267,7 +9274,7 @@ Equipa ${AppConfig.appName}`;
 
                 if (entriesHj >= limitDiario) {
                     this.showQRMsg(`${c.nome}: Limite diário atingido`, "bg-qr-warning");
-                    new BroadcastChannel((AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_access')).postMessage({
+                    new BroadcastChannel(LS_PREFIX + 'access').postMessage({
                         type: 'access_event',
                         data: { name: c.nome, msg: 'LIMITE DIÁRIO', valid: false, photo: c.photoUrl || null }
                     });
@@ -9284,7 +9291,7 @@ Equipa ${AppConfig.appName}`;
             this.showQRMsg(`Bem-vindo, ${c.nome}! Entrada validada.`, "bg-qr-success");
             this.showToast(`Entrada validada: ${c.nome}`, "success");
 
-            new BroadcastChannel((AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_access')).postMessage({
+            new BroadcastChannel(LS_PREFIX + 'access').postMessage({
                 type: 'access_event',
                 data: { name: c.nome, msg: 'BEM-VINDO!', valid: true, photo: c.photoUrl || null }
             });
@@ -9617,7 +9624,7 @@ Equipa ${AppConfig.appName}`;
                     throw err;
                 });
 
-                localStorage.setItem(AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_state', JSON.stringify(this.state));
+                localStorage.setItem(LS_PREFIX + 'state', JSON.stringify(this.state));
                 if (this.role !== 'client') {
                     this.showToast('Horário das aulas atualizado com sucesso.', 'success');
                 }
@@ -10562,8 +10569,8 @@ Equipa ${AppConfig.appName}`;
         const c = this.state.clients.find(cl => cl.id == clientId);
         if (!c) return;
 
-        const appUrl = "${window.location.origin}/";
-        const message = `Olá ${c.name}, o seu professor atualizou o seu ${topic} no ! Aceda aqui para ver: ${appUrl}`;
+        const appUrl = location.origin + location.pathname;
+        const message = `Olá ${c.name}, o seu professor atualizou o seu ${topic} no ${APP_NAME}! Aceda aqui para ver: ${appUrl}`;
 
         if (type === 'whatsapp') {
             let phone = (c.phone || '').replace(/\s/g, '').replace('+', '');
@@ -10579,7 +10586,7 @@ Equipa ${AppConfig.appName}`;
         } else if (type === 'email') {
             const email = c.email;
             if (!email) return alert('O cliente não tem e-mail registado!');
-            const mailUrl = `mailto:${email}?subject= - Atualização de ${topic}&body=${encodeURIComponent(message)}`;
+            const mailUrl = `mailto:${email}?subject=${APP_NAME} - Atualização de ${topic}&body=${encodeURIComponent(message)}`;
             window.location.href = mailUrl;
         }
     }
@@ -10635,7 +10642,7 @@ Equipa ${AppConfig.appName}`;
 
     startNewPredefinedPlan() {
         // Verificar rascunho
-        const draft = localStorage.getItem((AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_predefined_draft');
+        const draft = localStorage.getItem(LS_PREFIX + 'predefined_draft');
         if (draft) {
             const draftData = JSON.parse(draft);
             if (!draftData.id) { // Rascunho de um NOVO plano
@@ -10661,7 +10668,7 @@ Equipa ${AppConfig.appName}`;
 
     editPredefinedPlan(id) {
         // Verificar rascunho
-        const draft = localStorage.getItem((AppConfig.appName.toLowerCase().replace(/\s/g,'_') + '_predefined_draft');
+        const draft = localStorage.getItem(LS_PREFIX + 'predefined_draft');
         if (draft) {
             const draftData = JSON.parse(draft);
             if (draftData.id === id) { // Rascunho DESTE plano
