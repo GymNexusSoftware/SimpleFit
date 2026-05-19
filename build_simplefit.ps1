@@ -153,6 +153,22 @@ if ($contentNormalized.Contains($origClientSidebarN)) {
     Write-Warning "Falha ao remover menu de aulas no sidebar usando quebras normalizadas."
 }
 
+# 3.10 Remover quadrado de Afluência Estimada do painel do cliente
+$origClientOccupancy = @'
+                    <div style="margin-top: 2rem;">
+                        ${this.getOccupancyHTML(false)}
+                    </div>
+'@
+$origClientOccupancyN = $origClientOccupancy.Replace("`r`n", "`n")
+$contentNormalized = $content.Replace("`r`n", "`n")
+
+if ($contentNormalized.Contains($origClientOccupancyN)) {
+    $contentNormalized = $contentNormalized.Replace($origClientOccupancyN, "")
+    $content = $contentNormalized.Replace("`n", "`r`n")
+} else {
+    Write-Warning "Falha ao remover Afluência Estimada do painel do cliente."
+}
+
 
 # 4. LS Prefix replacement
 $content = $content.Replace("'kandalgym_", "LS_PREFIX + '")

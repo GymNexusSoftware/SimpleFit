@@ -6062,9 +6062,7 @@ Equipa ${APP_NAME}`;
                         </div>
                     </div>
 
-                    <div style="margin-top: 2rem;">
-                        ${this.getOccupancyHTML(false)}
-                    </div>
+
 
                     ${(this.state.news && this.state.news.length > 0) ? `
                     <div style="margin-top: 2rem;" class="animate-fade-in">
