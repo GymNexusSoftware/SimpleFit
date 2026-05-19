@@ -363,7 +363,7 @@ h3 {
 
 .btn-primary {
     background: var(--primary);
-    color: #fff;
+    color: var(--cfg-text-on-primary, #ffffff);
 }
 
 .btn-secondary {
