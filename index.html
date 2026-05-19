@@ -5,10 +5,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SimpleFit - Personal Trainer & Planeamento</title>
+    
+    <!-- Diagnostic Error Overlay -->
+    <script>
+        window.onerror = function(message, source, lineno, colno, error) {
+            try {
+                const div = document.createElement('div');
+                div.style.position = 'fixed';
+                div.style.top = '0';
+                div.style.left = '0';
+                div.style.width = '100%';
+                div.style.backgroundColor = '#111111';
+                div.style.color = '#ffffff';
+                div.style.padding = '20px';
+                div.style.fontFamily = 'monospace';
+                div.style.fontSize = '14px';
+                div.style.zIndex = '999999';
+                div.style.borderBottom = '4px solid #ff3333';
+                div.style.boxShadow = '0 4px 15px rgba(0,0,0,0.5)';
+                div.innerHTML = '<h3 style="margin:0 0 10px 0;color:#ff3333;">⚠️ Diagnóstico de Erro (SimpleFit)</h3>' +
+                    '<strong>Erro:</strong> ' + message + '<br>' +
+                    '<strong>Ficheiro:</strong> ' + source + '<br>' +
+                    '<strong>Linha:</strong> ' + lineno + ' | Coluna: ' + colno + '<br><br>' +
+                    '<button onclick="this.parentElement.remove()" style="background:#fff;color:#000;border:none;padding:6px 12px;cursor:pointer;font-weight:bold;border-radius:4px;">Fechar Diagnóstico</button>' +
+                    ' <button onclick="localStorage.clear(); sessionStorage.clear(); location.reload(true);" style="background:#ff3333;color:#fff;border:none;padding:6px 12px;cursor:pointer;font-weight:bold;border-radius:4px;margin-left:10px;">Forçar Reset Total</button>';
+                document.body.appendChild(div);
+            } catch(e) {}
+            return false;
+        };
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=30">
+    <link rel="stylesheet" href="styles.css?v=31">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0a0a0a">
@@ -99,7 +129,43 @@
     </div>
 
     <script src="data.js"></script>
-    <script src="app.js?v=612"></script>
+    <script src="app.js?v=613"></script>
+    
+    <!-- Failsafe de Recuperação Automática -->
+    <script>
+        setTimeout(function() {
+            const loader = document.querySelector('.loader');
+            if (loader && loader.offsetHeight > 0) {
+                const recoveryDiv = document.createElement('div');
+                recoveryDiv.style.position = 'fixed';
+                recoveryDiv.style.bottom = '20px';
+                recoveryDiv.style.right = '20px';
+                recoveryDiv.style.backgroundColor = '#1a1a1a';
+                recoveryDiv.style.color = '#ffffff';
+                recoveryDiv.style.padding = '18px';
+                recoveryDiv.style.borderRadius = '10px';
+                recoveryDiv.style.border = '2px solid #ff3333';
+                recoveryDiv.style.zIndex = '99999';
+                recoveryDiv.style.boxShadow = '0 8px 30px rgba(0,0,0,0.6)';
+                recoveryDiv.style.maxWidth = '350px';
+                recoveryDiv.style.fontFamily = "'Outfit', sans-serif";
+                recoveryDiv.style.animation = 'slideIn 0.5s ease-out';
+                recoveryDiv.innerHTML = '<div style="font-weight:bold;margin-bottom:8px;font-size:15px;display:flex;align-items:center;gap:6px;"><i class="fas fa-exclamation-triangle" style="color:#ff3333;"></i> Problemas a Carregar?</div>' +
+                    '<p style="font-size:12px;margin:0 0 12px 0;color:#cccccc;line-height:1.5;">Detectámos que a aplicação está a demorar para iniciar. Isto deve-se a dados antigos de cache guardados no seu navegador.</p>' +
+                    '<div style="display:flex;gap:8px;">' +
+                    '<button onclick="localStorage.clear(); sessionStorage.clear(); location.reload(true);" style="background:#ff3333;color:#ffffff;border:none;padding:6px 12px;cursor:pointer;font-weight:bold;border-radius:4px;font-size:12px;">Limpar Cache & Reset</button>' +
+                    '<button onclick="this.parentElement.parentElement.remove()" style="background:#333333;color:#ffffff;border:none;padding:6px 12px;cursor:pointer;border-radius:4px;font-size:12px;">Fechar</button>' +
+                    '</div>';
+                
+                // Adicionar animação simples de slideIn
+                const style = document.createElement('style');
+                style.innerHTML = '@keyframes slideIn { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }';
+                document.head.appendChild(style);
+                
+                document.body.appendChild(recoveryDiv);
+            }
+        }, 4000);
+    </script>
 </body>
 
 </html>
