@@ -68,6 +68,13 @@ $content = $content.Replace('"Olá KandalGym!', '"Olá " + APP_NAME + "!')
 # 3.4 Substituição exata do "Sistema KandalGym" (PREVENÇÃO DE SYNTAXERROR - LINHA 6785)
 $content = $content.Replace("'Sistema KandalGym'", "'Sistema ' + APP_NAME")
 
+# 3.5 Remover frase de fase de teste da mensagem de WhatsApp de convite
+$content = $content.Replace('            `_A App está em fase de teste, mas já pode usar a marcação de aulas, os planos de treino e muito mais._\n` +', '')
+
+# 3.6 Remover menção a fase de teste no email de boas-vindas
+$content = $content.Replace('Esta App ainda encontra-se em fase de teste, mas poderá já usufruir de várias funcionalidades como: a marcação de aulas, consulta dos seus planos de treino, avaliações físicas e planos alimentares.', 'Poderá usufruir de várias funcionalidades como a marcação de aulas, consulta dos seus planos de treino, avaliações físicas e planos alimentares.')
+
+
 # 4. LS Prefix replacement
 $content = $content.Replace("'kandalgym_", "LS_PREFIX + '")
 
@@ -94,14 +101,15 @@ $content = $content.Replace("@kandalgym.pt", "@' + APP_NAME.toLowerCase().replac
 # 10. Title of the monitor window in single quotes (fix template bug)
 $content = $content.Replace("'<html><head><title>KandalGym - Monitor de Acesso</title>'", "'<html><head><title>' + APP_NAME + ' - Monitor de Acesso</title>'")
 
+# 10.5 Dynamic app URLs (MUST run before KandalGym global replacement)
+$content = $content.Replace("https://kandalspahealthclub.github.io/KandalGym/", "https://gymnexussoftware.github.io/SimpleFit/")
+$content = $content.Replace("https://kandalspahealthclub.github.io/KandalGym", "https://gymnexussoftware.github.io/SimpleFit/")
+
 # 11. General branding occurrences (SAFE: Substitui os restantes com segurança)
 $content = $content.Replace("Sistema KandalGym", "Sistema ' + APP_NAME")
 $content = $content.Replace("KandalGym App", "SimpleFit App")
 $content = $content.Replace("KandalGym", "'+APP_NAME+'")
 $content = $content.Replace("KandalMonitor", "'+APP_NAME+'Monitor")
-
-# Dynamic app URLs
-$content = $content.Replace("https://kandalspahealthclub.github.io/KandalGym/", "' + window.location.origin + window.location.pathname + '")
 
 # 12. Injeção cirúrgica do Failsafe Bypass no handleLogin()
 $origHandleStart = '    async handleLogin() {

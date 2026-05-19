@@ -1373,7 +1373,7 @@ class FitnessApp {
         const subject = `Bem-vindo a ${APP_NAME} - ${name}`;
         const body = `Olá ${name},
 A sua conta de ${label} na ${APP_NAME} foi criada com sucesso!
-Esta App ainda encontra-se em fase de teste, mas poderá já usufruir de várias funcionalidades como: a marcação de aulas, consulta dos seus planos de treino, avaliações físicas e planos alimentares.
+Poderá usufruir de várias funcionalidades como a marcação de aulas, consulta dos seus planos de treino, avaliações físicas e planos alimentares.
 Poderá aceder a plataforma através do seguinte endereço: https://gymnexussoftware.github.io/SimpleFit/
 
 *As suas credenciais de acesso são:*
@@ -1393,7 +1393,7 @@ Equipa ${APP_NAME}`;
             `*Email:* ${email}\n` +
             `*Password:* ${pass}\n` +
             `*AVISO:* Altere a sua password no menu "Perfil" após o primeiro acesso.\n\n` +
-            `_A App está em fase de teste, mas já pode usar a marcação de aulas, os planos de treino e muito mais._\n` +
+
             `*Acesso:* https://gymnexussoftware.github.io/SimpleFit/\n` +
             `Bons treinos!`;
 
