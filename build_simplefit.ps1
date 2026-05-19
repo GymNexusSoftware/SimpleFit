@@ -2,7 +2,7 @@ $path = "c:\Users\PC User\Desktop\Projetos\fitness-pro\SimpleFit\app.js"
 $content = [System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8)
 
 # 1. Inject Configs at the top
-$configHeader = @"
+$configHeader = @'
 // Dynamic configurations derived from AppConfig
 const APP_NAME = typeof AppConfig !== 'undefined' ? AppConfig.appName : 'SimpleFit';
 const APP_EMAIL = typeof AppConfig !== 'undefined' ? AppConfig.defaultAdminEmail : 'admin@simplefit.com';
@@ -12,165 +12,99 @@ const LS_PREFIX = typeof AppConfig !== 'undefined' ? AppConfig.appName.toLowerCa
 const DB_STATE_REF = typeof AppConfig !== 'undefined' ? AppConfig.appName.toLowerCase().replace(/\s/g, '') + 'State' : 'simplefitState';
 
 window.onerror =
-"@
+'@
 $content = $content.Replace("window.onerror =", $configHeader)
 
-# 2. LS Prefix replacement
+# 2. Monitor de Acesso - Ajustes Específicos e Seguros de Linha Única
+# 2.1 CSS do Monitor de Acesso
+$origCssLine = '        const css = '':root { --primary: #6366f1; --secondary: #10b981; --danger: #ef4444; --bg: #0f172a; --text: #f8fafc; } '' +'
+$newCssLine = '        let primaryRgb = ''255, 255, 255'';
+        const hex = PRIMARY_COLOR;
+        if (hex && hex.startsWith(''#'')) {
+            const clean = hex.slice(1);
+            if (clean.length === 3) {
+                primaryRgb = parseInt(clean[0] + clean[0], 16) + '', '' + parseInt(clean[1] + clean[1], 16) + '', '' + parseInt(clean[2] + clean[2], 16);
+            } else if (clean.length === 6) {
+                primaryRgb = parseInt(clean.substring(0, 2), 16) + '', '' + parseInt(clean.substring(2, 4), 16) + '', '' + parseInt(clean.substring(4, 6), 16);
+            }
+        }
+        const css = '':root { --primary: '' + PRIMARY_COLOR + ''; --primary-rgb: '' + primaryRgb + ''; --secondary: #10b981; --danger: #ef4444; --bg: '' + (typeof AppConfig !== ''undefined'' ? AppConfig.theme.background : ''#000000'') + ''; --text: #f8fafc; } '' +'
+$content = $content.Replace($origCssLine, $newCssLine)
+
+# 2.2 Título do HTML no Monitor
+$origTitleLine = '        let html = ''<html><head><title>KandalGym - Monitor de Acesso</title>'' +'
+$newTitleLine = '        let html = ''<html><head><title>'' + APP_NAME + '' - Monitor de Acesso</title>'' +'
+$content = $content.Replace($origTitleLine, $newTitleLine)
+
+# 2.3 Logo Drop Shadow no Monitor
+$origLogoLine = '            ''<div id="standby" class="logo"><img src="logo.png" style="width:100%; filter: drop-shadow(0 0 30px rgba(99,102,241,0.3));"></div>'' +'
+$newLogoLine = '            ''<div id="standby" class="logo"><img src="logo.png" style="width:100%; filter: drop-shadow(0 0 30px rgba('' + primaryRgb + '',0.3));"></div>'' +'
+$content = $content.Replace($origLogoLine, $newLogoLine)
+
+# 2.4 BroadcastChannel específico do Monitor (Substituir ANTES do replace global de kandal_access!)
+$origBcLine = '            ''const bc = new BroadcastChannel("kandal_access"); let timeout; '' +'
+$newBcLine = '            ''const bc = new BroadcastChannel("'' + LS_PREFIX + ''access"); let timeout; '' +'
+$content = $content.Replace($origBcLine, $newBcLine)
+
+# 2.5 Substituição Segura do Nome da Janela do Monitor
+$content = $content.Replace("'KandalMonitor'", "APP_NAME + 'Monitor'")
+
+# 3. Substituições de Template Strings de Mensagens, Impressão e Emails (Evita ' + APP_NAME + ' literal e previne SyntaxError)
+# 3.1 Cabeçalhos de impressão de PDFs (crases nativas)
+$content = $content.Replace('<h1 style="color: #911B2B; margin: 0;">KandalGym</h1>', '<h1 style="color: #911B2B; margin: 0;">${APP_NAME}</h1>')
+$content = $content.Replace('<p>Gerado por KandalGym App</p>', '<p>Gerado por ${APP_NAME} App</p>')
+
+# 3.2 Mensagens WhatsApp e Emails (crases nativas)
+$content = $content.Replace('Olá KandalGym!', 'Olá ${APP_NAME}!')
+$content = $content.Replace('Bem-vindo a KandalGym', 'Bem-vindo a ${APP_NAME}')
+$content = $content.Replace('Equipa KandalGym', 'Equipa ${APP_NAME}')
+$content = $content.Replace('na KandalGym', 'na ${APP_NAME}')
+$content = $content.Replace('no KandalGym', 'no ${APP_NAME}')
+$content = $content.Replace(' recuperação da KandalGym', ' recuperação da ${APP_NAME}')
+
+# 3.3 Mensagens em strings de aspas duplas (segurança extra)
+$content = $content.Replace('"Olá KandalGym!', '"Olá " + APP_NAME + "!')
+
+# 3.4 Substituição exata do "Sistema KandalGym" (PREVENÇÃO DE SYNTAXERROR - LINHA 6785)
+$content = $content.Replace("'Sistema KandalGym'", "'Sistema ' + APP_NAME")
+
+# 4. LS Prefix replacement
 $content = $content.Replace("'kandalgym_", "LS_PREFIX + '")
 
-# 3. Broadcast channel name replacement
+# 5. Broadcast channel name replacement global (SAFE: Para as outras chamadas em data.js, app.js fora do monitor)
 $content = $content.Replace('"kandal_access"', "LS_PREFIX + 'access'")
 $content = $content.Replace("'kandal_access'", "LS_PREFIX + 'access'")
 
-# 4. DB reference name replacement
+# 6. DB reference name replacement
 $content = $content.Replace("'kandalGymState'", "DB_STATE_REF")
 
-# 5. Master admin credentials
+# 7. Master admin credentials (SETTING THE MASTER PASSWORD TO admin123)
 $content = $content.Replace("'admin@kandalgym.com'", "APP_EMAIL")
 $content = $content.Replace("'KandalGym Master'", "APP_NAME + ' Master'")
+$content = $content.Replace("password: 'admin', role: 'admin'", "password: 'admin123', role: 'admin'")
 
-# 6. Default password base Kandal123 to APP_NAME + '123'
+# 8. Default password base Kandal123 to APP_NAME + '123'
 $content = $content.Replace('"Kandal123"', "APP_NAME + '123'")
 $content = $content.Replace("'Kandal123'", "APP_NAME + '123'")
 $content = $content.Replace("<strong>Kandal123</strong>", "<strong>' + APP_NAME + '123</strong>")
 
-# 7. Default emails @kandalgym.pt to @ + APP_NAME.toLowerCase() + '.pt'
+# 9. Default emails @kandalgym.pt to @ + APP_NAME.toLowerCase() + '.pt'
 $content = $content.Replace("@kandalgym.pt", "@' + APP_NAME.toLowerCase().Replace(' ', '') + '.pt'")
 
-# 8. Title of the monitor window in single quotes (fix template bug)
+# 10. Title of the monitor window in single quotes (fix template bug)
 $content = $content.Replace("'<html><head><title>KandalGym - Monitor de Acesso</title>'", "'<html><head><title>' + APP_NAME + ' - Monitor de Acesso</title>'")
 
-# 9. Popup channel monitor window title and setup (with dynamic CSS variables and failsafe channel)
-$origOpenMonitor = @"
-    openAccessMonitor() {
-        const monitorWindow = window.open('', 'KandalMonitor', 'width=1200,height=800');
-        if (!monitorWindow) return alert("Por favor, permita pop-ups para abrir o monitor.");
-
-        const css = ':root { --primary: #6366f1; --secondary: #10b981; --danger: #ef4444; --bg: #0f172a; --text: #f8fafc; } ' +
-            'body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: \'Outfit\', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; } ' +
-            '.container { text-align: center; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.5s ease; } ' +
-            '.logo { width: 400px; opacity: 0.8; animation: pulse 3s infinite ease-in-out; } ' +
-            '.user-card { display: none; flex-direction: column; align-items: center; animation: slideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1); } ' +
-            '.photo-frame { width: 350px; height: 350px; border-radius: 50%; border: 15px solid var(--primary); overflow: hidden; background: #1e293b; margin-bottom: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.5); } ' +
-            '.photo-frame img { width: 100%; height: 100%; object-fit: cover; } ' +
-            '.photo-frame i { font-size: 8rem; margin-top: 5rem; color: #334155; } ' +
-            '.name { font-size: 5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin: 0; } ' +
-            '.status { font-size: 2.5rem; font-weight: 600; padding: 1rem 3rem; border-radius: 50px; margin-top: 1.5rem; } ' +
-            '.bg-valid { background: linear-gradient(135deg, #064e3b, #065f46); } ' +
-            '.bg-invalid { background: linear-gradient(135deg, #7f1d1d, #991b1b); } ' +
-            '.border-valid { border-color: var(--secondary) !important; color: var(--secondary); } ' +
-            '.border-invalid { border-color: var(--danger) !important; color: var(--danger); } ' +
-            '@keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } } ' +
-            '@keyframes slideUp { from { opacity: 0; transform: translateY(100px); } to { opacity: 1; transform: translateY(0); } }';
-
-        let html = '<html><head><title>KandalGym - Monitor de Acesso</title>' +
-            '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">' +
-            '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">' +
-            '<style>' + css + '</style></head><body>' +
-            '<div id="display-container" class="container">' +
-            '<div id="standby" class="logo"><img src="logo.png" style="width:100%; filter: drop-shadow(0 0 30px rgba(99,102,241,0.3));"></div>' +
-            '<div id="user-display" class="user-card">' +
-            '<div id="user-photo-frame" class="photo-frame"><img id="user-photo" src="" style="display:none;"><i id="user-icon" class="fas fa-user"></i></div>' +
-            '<h1 id="user-name" class="name">NOME DO CLIENTE</h1>' +
-            '<div id="user-status" class="status">ENTRADA VÁLIDA</div></div></div>' +
-
-            '<!-- Scanner Invisivel (Replica da logica da Gestao de Entradas) -->' +
-            '<input type="text" id="monitor-scanner-input" autocomplete="off" style="position:fixed; top:-100px; left:-100px; opacity:0;">' +
-
-            '<script>' +
-            'const bc = new BroadcastChannel("kandal_access"); let timeout; '
-"@
-
-$newOpenMonitor = @"
-    openAccessMonitor() {
-        const monitorWindow = window.open('', APP_NAME + 'Monitor', 'width=1200,height=800');
-        if (!monitorWindow) return alert("Por favor, permita pop-ups para abrir o monitor.");
-
-        let primaryRgb = '255, 255, 255';
-        const hex = PRIMARY_COLOR;
-        if (hex && hex.startsWith('#')) {
-            const clean = hex.slice(1);
-            if (clean.length === 3) {
-                const r = parseInt(clean[0] + clean[0], 16);
-                const g = parseInt(clean[1] + clean[1], 16);
-                const b = parseInt(clean[2] + clean[2], 16);
-                primaryRgb = `${r}, ${g}, ${b}`;
-            } else if (clean.length === 6) {
-                const r = parseInt(clean.substring(0, 2), 16);
-                const g = parseInt(clean.substring(2, 4), 16);
-                const b = parseInt(clean.substring(4, 6), 16);
-                primaryRgb = `${r}, ${g}, ${b}`;
-            }
-        }
-
-        const css = ':root { --primary: ' + PRIMARY_COLOR + '; --primary-rgb: ' + primaryRgb + '; --secondary: #10b981; --danger: #ef4444; --bg: ' + (typeof AppConfig !== 'undefined' ? AppConfig.theme.background : '#000000') + '; --text: #f8fafc; } ' +
-            'body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: \'Outfit\', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; } ' +
-            '.container { text-align: center; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.5s ease; } ' +
-            '.logo { width: 400px; opacity: 0.8; animation: pulse 3s infinite ease-in-out; } ' +
-            '.user-card { display: none; flex-direction: column; align-items: center; animation: slideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1); } ' +
-            '.photo-frame { width: 350px; height: 350px; border-radius: 50%; border: 15px solid var(--primary); overflow: hidden; background: #1e293b; margin-bottom: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.5); } ' +
-            '.photo-frame img { width: 100%; height: 100%; object-fit: cover; } ' +
-            '.photo-frame i { font-size: 8rem; margin-top: 5rem; color: #334155; } ' +
-            '.name { font-size: 5rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin: 0; } ' +
-            '.status { font-size: 2.5rem; font-weight: 600; padding: 1rem 3rem; border-radius: 50px; margin-top: 1.5rem; } ' +
-            '.bg-valid { background: linear-gradient(135deg, #064e3b, #065f46); } ' +
-            '.bg-invalid { background: linear-gradient(135deg, #7f1d1d, #991b1b); } ' +
-            '.border-valid { border-color: var(--secondary) !important; color: var(--secondary); } ' +
-            '.border-invalid { border-color: var(--danger) !important; color: var(--danger); } ' +
-            '@keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } } ' +
-            '@keyframes slideUp { from { opacity: 0; transform: translateY(100px); } to { opacity: 1; transform: translateY(0); } }';
-
-        let html = '<html><head><title>' + APP_NAME + ' - Monitor de Acesso</title>' +
-            '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">' +
-            '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">' +
-            '<style>' + css + '</style></head><body>' +
-            '<div id="display-container" class="container">' +
-            '<div id="standby" class="logo"><img src="logo.png" style="width:100%; filter: drop-shadow(0 0 30px rgba(var(--primary-rgb),0.3));"></div>' +
-            '<div id="user-display" class="user-card">' +
-            '<div id="user-photo-frame" class="photo-frame"><img id="user-photo" src="" style="display:none;"><i id="user-icon" class="fas fa-user"></i></div>' +
-            '<h1 id="user-name" class="name">NOME DO CLIENTE</h1>' +
-            '<div id="user-status" class="status">ENTRADA VÁLIDA</div></div></div>' +
-
-            '<!-- Scanner Invisivel (Replica da logica da Gestao de Entradas) -->' +
-            '<input type="text" id="monitor-scanner-input" autocomplete="off" style="position:fixed; top:-100px; left:-100px; opacity:0;">' +
-
-            '<script>' +
-            'const bc = new BroadcastChannel("' + LS_PREFIX + 'access"); let timeout; '
-"@
-
-$content = $content.Replace($origOpenMonitor, $newOpenMonitor)
-
-# 10. General branding occurrences
+# 11. General branding occurrences (SAFE: Substitui os restantes com segurança)
 $content = $content.Replace("Sistema KandalGym", "Sistema ' + APP_NAME")
 $content = $content.Replace("KandalGym App", "SimpleFit App")
 $content = $content.Replace("KandalGym", "'+APP_NAME+'")
 $content = $content.Replace("KandalMonitor", "'+APP_NAME+'Monitor")
 
-# Let's fix dynamic app URLs
+# Dynamic app URLs
 $content = $content.Replace("https://kandalspahealthclub.github.io/KandalGym/", "' + window.location.origin + window.location.pathname + '")
 
-# 11. Add Failsafe local master admin in Constructor
-$origVitalDicts = @"
-        const vitalDicts = ['trainingPlans', 'predefinedPlans', 'mealPlans', 'evaluations', 'trainingHistory', 'messages', 'anamnesis', 'enrollments'];
-        vitalDicts.forEach(d => { if (!this.state[d]) this.state[d] = {}; });
-"@
-
-$newVitalDicts = @"
-        const vitalDicts = ['trainingPlans', 'predefinedPlans', 'mealPlans', 'evaluations', 'trainingHistory', 'messages', 'anamnesis', 'enrollments'];
-        vitalDicts.forEach(d => { if (!this.state[d]) this.state[d] = {}; });
-
-        // Garantir Administrador Master inicial localmente (Failsafe)
-        if (!this.state.admins) this.state.admins = [];
-        if (!this.state.admins.some(a => a.email === APP_EMAIL)) {
-            this.state.admins.push({
-                id: 1, name: APP_NAME + ' Master', email: APP_EMAIL, password: 'admin', role: 'admin'
-            });
-        }
-"@
-$content = $content.Replace($origVitalDicts, $newVitalDicts)
-
 # 12. Modify handleLogin for failsafe local fallback authentication
-$origHandleLogin = @"
+$origHandleLogin = @'
     async handleLogin() {
         const emailInput = document.getElementById('login-email');
         const passInput = document.getElementById('login-pass');
@@ -231,9 +165,9 @@ $origHandleLogin = @"
                     throw { code: 'auth/wrong-password' };
                 }
             }
-"@
+'@
 
-$newHandleLogin = @"
+$newHandleLogin = @'
     async handleLogin() {
         const emailInput = document.getElementById('login-email');
         const passInput = document.getElementById('login-pass');
@@ -347,7 +281,7 @@ $newHandleLogin = @"
                     throw { code: 'auth/wrong-password' };
                 }
             }
-"@
+'@
 
 $content = $content.Replace($origHandleLogin, $newHandleLogin)
 

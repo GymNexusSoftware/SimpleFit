@@ -547,7 +547,7 @@ class FitnessApp {
                 // 2. Conta mestre garantida
                 if (!this.state.admins.some(a => a.email === APP_EMAIL)) {
                     this.state.admins.push({
-                        id: 1, name: APP_NAME + ' Master', email: APP_EMAIL, password: 'admin', role: 'admin'
+                        id: 1, name: APP_NAME + ' Master', email: APP_EMAIL, password: 'admin123', role: 'admin'
                     });
                 }
 
