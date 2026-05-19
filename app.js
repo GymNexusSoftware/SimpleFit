@@ -838,14 +838,14 @@ class FitnessApp {
             user = allUsers.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
         }
 
-        let message = "Olá '+APP_NAME+'! Gostaria de solicitar a recuperação da minha palavra-passe.";
+        let message = "Olá ${APP_NAME}! Gostaria de solicitar a recuperação da minha palavra-passe.";
 
         if (user) {
             // Se encontrarmos o utilizador, enviamos Nome e Email
-            message = `Olá '+APP_NAME+'! O meu nome é ${user.name}, o meu email é ${user.email} e gostaria de solicitar a recuperação da minha palavra-passe.`;
+            message = `Olá ${APP_NAME}! O meu nome é ${user.name}, o meu email é ${user.email} e gostaria de solicitar a recuperação da minha palavra-passe.`;
         } else if (email) {
             // Se só tivermos o email, enviamos só o email
-            message = `Olá '+APP_NAME+'! O meu email é ${email} e gostaria de solicitar a recuperação da minha palavra-passe.`;
+            message = `Olá ${APP_NAME}! O meu email é ${email} e gostaria de solicitar a recuperação da minha palavra-passe.`;
         }
 
         const waUrl = `https://wa.me/351963939017?text=${encodeURIComponent(message)}`;
@@ -1323,9 +1323,9 @@ class FitnessApp {
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
 
-        const subject = `Bem-vindo a '+APP_NAME+' - ${name}`;
+        const subject = `Bem-vindo a ${APP_NAME} - ${name}`;
         const body = `Olá ${name},
-A sua conta de ${label} na '+APP_NAME+' foi criada com sucesso!
+A sua conta de ${label} na ${APP_NAME} foi criada com sucesso!
 Esta App ainda encontra-se em fase de teste, mas poderá já usufruir de várias funcionalidades como: a marcação de aulas, consulta dos seus planos de treino, avaliações físicas e planos alimentares.
 Poderá aceder a plataforma através do seguinte endereço: https://kandalspahealthclub.github.io/'+APP_NAME+'/
 
@@ -1337,9 +1337,9 @@ Poderá aceder a plataforma através do seguinte endereço: https://kandalspahea
 
 Recomendamos que guarde este link nos seus favoritos ou instale a App no seu telemóvel.
 Bons treinos!
-Equipa '+APP_NAME+'`;
+Equipa ${APP_NAME}`;
 
-        const whatsappText = `*Bem-vindo a '+APP_NAME+'*\n` +
+        const whatsappText = `*Bem-vindo a ${APP_NAME}*\n` +
             `---------------------------------------------\n` +
             `Olá *${name}*, a sua conta de *${label}* foi criada!\n` +
             `*CREDENCIAIS DE ACESSO:*\n` +
@@ -2506,7 +2506,7 @@ Equipa '+APP_NAME+'`;
     }
 
     openAccessMonitor() {
-        const monitorWindow = window.open('', ''+APP_NAME+'Monitor', 'width=1200,height=800');
+        const monitorWindow = window.open('', APP_NAME + 'Monitor', 'width=1200,height=800');
         if (!monitorWindow) return alert("Por favor, permita pop-ups para abrir o monitor.");
 
         let primaryRgb = '255, 255, 255';
@@ -6782,7 +6782,7 @@ Equipa '+APP_NAME+'`;
         Object.keys(threads).forEach(id => {
             const t = threads[id];
             if (id === 'system') {
-                t.user = { name: 'Sistema ' + APP_NAME', photoUrl: null, role: 'system' };
+                t.user = { name: 'Sistema ' + APP_NAME, photoUrl: null, role: 'system' };
             } else if (!t.user) {
                 const uid = Number(id);
                 t.user = this.state.clients.find(c => c.id === uid) ||
@@ -7809,7 +7809,7 @@ Equipa '+APP_NAME+'`;
         // 2. Build the HTML content
         let html = `
             <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #911B2B; padding-bottom: 10px;">
-                <h1 style="color: #911B2B; margin: 0;">'+APP_NAME+'</h1>
+                <h1 style="color: #911B2B; margin: 0;">${APP_NAME}</h1>
                 <p style="color: #666; margin: 5px 0;">Plano de Treino Personalizado</p>
             </div>
 
@@ -7855,7 +7855,7 @@ Equipa '+APP_NAME+'`;
 
         html += `
             <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #999;">
-                <p>Gerado por SimpleFit App</p>
+                <p>Gerado por ${APP_NAME} App</p>
             </div>
             `;
 
@@ -7893,7 +7893,7 @@ Equipa '+APP_NAME+'`;
         // Build HTML content
         let htmlContent = `
             <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #911B2B; padding-bottom: 10px;">
-                <h1 style="color: #911B2B; margin: 0;">'+APP_NAME+'</h1>
+                <h1 style="color: #911B2B; margin: 0;">${APP_NAME}</h1>
                 <p style="color: #666; margin: 5px 0;">Plano Alimentar Personalizado</p>
             </div>
 
@@ -7977,7 +7977,7 @@ Equipa '+APP_NAME+'`;
 
         let html = `
             <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #911B2B; padding-bottom: 10px;">
-                <h1 style="color: #911B2B; margin: 0;">'+APP_NAME+'</h1>
+                <h1 style="color: #911B2B; margin: 0;">${APP_NAME}</h1>
                 <p style="color: #666; margin: 5px 0;">Relatório de Avaliação Física</p>
             </div>
 
@@ -8045,7 +8045,7 @@ Equipa '+APP_NAME+'`;
 
         const html = `
             <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #911B2B; padding-bottom: 10px;">
-                <h1 style="color: #911B2B; margin: 0;">'+APP_NAME+'</h1>
+                <h1 style="color: #911B2B; margin: 0;">${APP_NAME}</h1>
                 <p style="color: #666; margin: 5px 0;">Relatório de Anamnese Física</p>
             </div>
 
@@ -8092,7 +8092,7 @@ Equipa '+APP_NAME+'`;
             </div>
 
             <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #999;">
-                <p>Gerado por SimpleFit App</p>
+                <p>Gerado por ${APP_NAME} App</p>
             </div>
         `;
 
@@ -10591,7 +10591,7 @@ Equipa '+APP_NAME+'`;
         if (!c) return;
 
         const appUrl = "https://kandalspahealthclub.github.io/'+APP_NAME+'/";
-        const message = `Olá ${c.name}, o seu professor atualizou o seu ${topic} no '+APP_NAME+'! Aceda aqui para ver: ${appUrl}`;
+        const message = `Olá ${c.name}, o seu professor atualizou o seu ${topic} no ${APP_NAME}! Aceda aqui para ver: ${appUrl}`;
 
         if (type === 'whatsapp') {
             let phone = (c.phone || '').replace(/\s/g, '').replace('+', '');
