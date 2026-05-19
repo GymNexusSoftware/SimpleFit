@@ -74,6 +74,85 @@ $content = $content.Replace('            `_A App está em fase de teste, mas já
 # 3.6 Remover menção a fase de teste no email de boas-vindas
 $content = $content.Replace('Esta App ainda encontra-se em fase de teste, mas poderá já usufruir de várias funcionalidades como: a marcação de aulas, consulta dos seus planos de treino, avaliações físicas e planos alimentares.', 'Poderá usufruir de várias funcionalidades como a marcação de aulas, consulta dos seus planos de treino, avaliações físicas e planos alimentares.')
 
+# 3.7 Corrigir frase do painel de acompanhamento de alunos (evitar '+APP_NAME+' em template string)
+$content = $content.Replace('Este é o seu painel de acompanhamento KandalGym.', 'Este é o seu painel de acompanhamento ${APP_NAME}.')
+
+# 3.8 Remover menu de Aulas no navbar (mobile) dos clientes
+$origClientNavbar = @'
+        } else {
+            navItems = [
+                { id: 'dashboard', icon: 'fa-home', label: 'Home' },
+                { id: 'classes', icon: 'fa-calendar-alt', label: 'Aulas' },
+                { id: 'training', icon: 'fa-dumbbell', label: 'Treino' },
+                { id: 'meal', icon: 'fa-apple-alt', label: 'Dieta' },
+                { id: 'evaluation', icon: 'fa-chart-line', label: 'Aval.' },
+                { id: 'chat', icon: 'fa-comment-alt', label: 'Msgs' },
+                { id: 'profile', icon: 'fa-user-circle', label: 'Perfil' }
+            ];
+        }
+'@
+
+$newClientNavbar = @'
+        } else {
+            navItems = [
+                { id: 'dashboard', icon: 'fa-home', label: 'Home' },
+                { id: 'training', icon: 'fa-dumbbell', label: 'Treino' },
+                { id: 'meal', icon: 'fa-apple-alt', label: 'Dieta' },
+                { id: 'evaluation', icon: 'fa-chart-line', label: 'Aval.' },
+                { id: 'chat', icon: 'fa-comment-alt', label: 'Msgs' },
+                { id: 'profile', icon: 'fa-user-circle', label: 'Perfil' }
+            ];
+        }
+'@
+
+$origClientNavbarN = $origClientNavbar.Replace("`r`n", "`n")
+$newClientNavbarN = $newClientNavbar.Replace("`r`n", "`n")
+$contentNormalized = $content.Replace("`r`n", "`n")
+
+if ($contentNormalized.Contains($origClientNavbarN)) {
+    $contentNormalized = $contentNormalized.Replace($origClientNavbarN, $newClientNavbarN)
+    $content = $contentNormalized.Replace("`n", "`r`n")
+} else {
+    Write-Warning "Falha ao remover menu de aulas no navbar usando quebras normalizadas."
+}
+
+# 3.9 Remover menu de Aulas no sidebar (desktop) dos clientes
+$origClientSidebar = @'
+        } else {
+            navItems = [
+                { id: 'dashboard', icon: 'fa-home', label: 'Inicio' },
+                { id: 'classes', icon: 'fa-calendar-alt', label: 'Horário de Aulas' },
+                { id: 'training', icon: 'fa-dumbbell', label: 'Meu Treino' },
+                { id: 'meal', icon: 'fa-apple-alt', label: 'Minha Dieta' },
+                { id: 'evaluation', icon: 'fa-chart-line', label: 'Avaliação Física' },
+                { id: 'chat', icon: 'fa-comment-alt', label: 'Mensagens' },
+                { id: 'profile', icon: 'fa-user-circle', label: 'O Meu Perfil' }
+            ];
+'@
+
+$newClientSidebar = @'
+        } else {
+            navItems = [
+                { id: 'dashboard', icon: 'fa-home', label: 'Inicio' },
+                { id: 'training', icon: 'fa-dumbbell', label: 'Meu Treino' },
+                { id: 'meal', icon: 'fa-apple-alt', label: 'Minha Dieta' },
+                { id: 'evaluation', icon: 'fa-chart-line', label: 'Avaliação Física' },
+                { id: 'chat', icon: 'fa-comment-alt', label: 'Mensagens' },
+                { id: 'profile', icon: 'fa-user-circle', label: 'O Meu Perfil' }
+            ];
+'@
+
+$origClientSidebarN = $origClientSidebar.Replace("`r`n", "`n")
+$newClientSidebarN = $newClientSidebar.Replace("`r`n", "`n")
+$contentNormalized = $content.Replace("`r`n", "`n")
+
+if ($contentNormalized.Contains($origClientSidebarN)) {
+    $contentNormalized = $contentNormalized.Replace($origClientSidebarN, $newClientSidebarN)
+    $content = $contentNormalized.Replace("`n", "`r`n")
+} else {
+    Write-Warning "Falha ao remover menu de aulas no sidebar usando quebras normalizadas."
+}
+
 
 # 4. LS Prefix replacement
 $content = $content.Replace("'kandalgym_", "LS_PREFIX + '")

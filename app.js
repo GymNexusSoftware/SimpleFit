@@ -1630,7 +1630,6 @@ Equipa ${APP_NAME}`;
         } else {
             navItems = [
                 { id: 'dashboard', icon: 'fa-home', label: 'Home' },
-                { id: 'classes', icon: 'fa-calendar-alt', label: 'Aulas' },
                 { id: 'training', icon: 'fa-dumbbell', label: 'Treino' },
                 { id: 'meal', icon: 'fa-apple-alt', label: 'Dieta' },
                 { id: 'evaluation', icon: 'fa-chart-line', label: 'Aval.' },
@@ -1691,7 +1690,6 @@ Equipa ${APP_NAME}`;
         } else {
             navItems = [
                 { id: 'dashboard', icon: 'fa-home', label: 'Inicio' },
-                { id: 'classes', icon: 'fa-calendar-alt', label: 'Horário de Aulas' },
                 { id: 'training', icon: 'fa-dumbbell', label: 'Meu Treino' },
                 { id: 'meal', icon: 'fa-apple-alt', label: 'Minha Dieta' },
                 { id: 'evaluation', icon: 'fa-chart-line', label: 'Avaliação Física' },
@@ -6025,7 +6023,7 @@ Equipa ${APP_NAME}`;
             case 'dashboard':
                 container.innerHTML = `
                     <h2 class="animate-fade-in">Bem-vindo, ${c.name} </h2>
-                    <p style="color:var(--text-muted); margin-bottom:1rem;">Este é o seu painel de acompanhamento '+APP_NAME+'.</p>
+                    <p style="color:var(--text-muted); margin-bottom:1rem;">Este é o seu painel de acompanhamento ${APP_NAME}.</p>
                     
                     ${(() => {
                         const t = this.state.teachers.find(teacher => teacher.id === c.teacherId);
