@@ -1374,7 +1374,7 @@ class FitnessApp {
         const body = `Olá ${name},
 A sua conta de ${label} na ${APP_NAME} foi criada com sucesso!
 Esta App ainda encontra-se em fase de teste, mas poderá já usufruir de várias funcionalidades como: a marcação de aulas, consulta dos seus planos de treino, avaliações físicas e planos alimentares.
-Poderá aceder a plataforma através do seguinte endereço: https://kandalspahealthclub.github.io/'+APP_NAME+'/
+Poderá aceder a plataforma através do seguinte endereço: https://gymnexussoftware.github.io/SimpleFit/
 
 *As suas credenciais de acesso são:*
 - *Email:* ${email}
@@ -1394,7 +1394,7 @@ Equipa ${APP_NAME}`;
             `*Password:* ${pass}\n` +
             `*AVISO:* Altere a sua password no menu "Perfil" após o primeiro acesso.\n\n` +
             `_A App está em fase de teste, mas já pode usar a marcação de aulas, os planos de treino e muito mais._\n` +
-            `*Acesso:* https://kandalspahealthclub.github.io/'+APP_NAME+'/\n` +
+            `*Acesso:* https://gymnexussoftware.github.io/SimpleFit/\n` +
             `Bons treinos!`;
 
         const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -10637,7 +10637,7 @@ Equipa ${APP_NAME}`;
         const c = this.state.clients.find(cl => cl.id == clientId);
         if (!c) return;
 
-        const appUrl = "https://kandalspahealthclub.github.io/'+APP_NAME+'/";
+        const appUrl = "https://gymnexussoftware.github.io/SimpleFit/";
         const message = `Olá ${c.name}, o seu professor atualizou o seu ${topic} no ${APP_NAME}! Aceda aqui para ver: ${appUrl}`;
 
         if (type === 'whatsapp') {
