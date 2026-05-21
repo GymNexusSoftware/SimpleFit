@@ -294,6 +294,12 @@ class FitnessApp {
         if (!libEx) return false;
         const cat = this.normalizeText(libEx.category);
         const name = this.normalizeText(libEx.name);
+        
+        // Se pertencer a uma categoria de força/alongamento, nunca é cardio
+        if (cat === 'costas' || cat === 'ombros' || cat === 'peito' || cat === 'perna' || cat === 'bracos' || cat === 'abdominais' || cat === 'alongamentos') {
+            return false;
+        }
+        
         return cat === 'cardio' || cat === 'aerobico' || name.includes('passadeira') || name.includes('elitica') || name.includes('bicicleta') || name.includes('remo') || name.includes('corrida') || name.includes('caminhada') || name.includes('escada');
     }
 
