@@ -1,4 +1,4 @@
-﻿// Dynamic configurations derived from AppConfig
+// Dynamic configurations derived from AppConfig
 const APP_NAME = typeof AppConfig !== 'undefined' ? AppConfig.appName : 'SimpleFit';
 const APP_EMAIL = typeof AppConfig !== 'undefined' ? AppConfig.defaultAdminEmail : 'admin@simplefit.com';
 const PRIMARY_COLOR = typeof AppConfig !== 'undefined' ? AppConfig.theme.primary : '#ffffff';
@@ -543,6 +543,9 @@ class FitnessApp {
                 if (Object.keys(this.state.planRestrictions || {}).length === 0) {
                     this.state.planRestrictions = JSON.parse(JSON.stringify(this.planRestrictions));
                 }
+
+                // Migrar categorias de exercícios legados
+                this.migrateExerciseCategories();
 
                 // 2. Conta mestre garantida
                 if (!this.state.admins.some(a => a.email === APP_EMAIL)) {
@@ -2962,6 +2965,69 @@ Equipa ${APP_NAME}`;
         reader.readAsText(file);
     }
 
+    getCategoryFromExerciseName(name) {
+        const lower = name.toLowerCase();
+        
+        // Alongamentos
+        if (lower.includes('alongamento')) return 'Alongamentos';
+        
+        // Abdominais
+        if (lower.includes('abdominal') || lower.includes('abdominais') || lower.includes('crunch') || lower.includes('prancha') || lower.includes('lumberjack') || lower.includes('flexão lateral do tronco') || lower.includes('lateralizações do tronco') || lower.includes('flexão do tronco')) return 'Abdominais';
+        
+        // Braços (Bicep/Tricep)
+        if (lower.includes('bicep') || lower.includes('bíceps') || lower.includes('tricep') || lower.includes('tríceps') || lower.includes('antebraço') || lower.includes('fundos') || lower.includes('kick-back') || lower.includes('press francês') || lower.includes('scott') || lower.includes('rosca') || lower.includes('martelo') || lower.includes('concentrado') || lower.includes('cabo cristo') || lower.includes('testa') || lower.includes('tríceps à testa') || lower.includes('tríceps no supino')) return 'Braços';
+        
+        // Perna
+        if (lower.includes('agachamento') || lower.includes('leg extension') || lower.includes('leg press') || lower.includes('lunge') || lower.includes('prensa') || lower.includes('abdutores') || lower.includes('abdução') || lower.includes('adutores') || lower.includes('adução') || lower.includes('glúteo') || lower.includes('gémeo') || lower.includes('calf') || lower.includes('calf raise') || lower.includes('quadríceps') || lower.includes('isquiotibiais') || lower.includes('hiperextensão') || lower.includes('extensões na máquina') || lower.includes('levantamento terra') || lower.includes('peso morto') || lower.includes('lombares') || lower.includes('lower back') || lower.includes('hip trust')) return 'Perna';
+        
+        // Peito
+        if (lower.includes('peitoral') || lower.includes('peito') || lower.includes('supino') || lower.includes('butterfly') || lower.includes('chest press') || lower.includes('cross-over') || lower.includes('aberturas') || lower.includes('pull-over') || lower.includes('pecfly') || lower.includes('flexão de braços - peitoral') || lower.includes('flexão de braços com joelhos')) return 'Peito';
+        
+        // Ombros
+        if (lower.includes('ombro') || lower.includes('deltoide') || lower.includes('clean and press') || lower.includes('elevações frontais') || lower.includes('elevações laterais') || lower.includes('press militar') || lower.includes('press de ombros') || lower.includes('voos') || lower.includes('remada alta') || lower.includes('coifa') || lower.includes('trapézio') || lower.includes('remo vertical')) return 'Ombros';
+        
+        // Costas
+        if (lower.includes('dorsal') || lower.includes('costas') || lower.includes('lat pulldown') || lower.includes('puxada') || lower.includes('remada') || lower.includes('remo') || lower.includes('elevações') || lower.includes('cavalinho') || lower.includes('puxador') || lower.includes('lats') || lower.includes('barra fixa')) return 'Costas';
+        
+        // Cárdio
+        if (lower.includes('elítica') || lower.includes('passadeira') || lower.includes('escada') || lower.includes('cárdio') || lower.includes('corrida') || lower.includes('bicicleta') || lower.includes('esteira')) return 'Cárdio';
+        
+        return 'Geral';
+    }
+
+    migrateExerciseCategories() {
+        if (!this.state.exercises) return;
+        
+        let migrated = false;
+        
+        // Garantir que a categoria "Braços" existe em exerciseCategories
+        if (this.state.exerciseCategories) {
+            if (!this.state.exerciseCategories.includes('Braços')) {
+                this.state.exerciseCategories.push('Braços');
+                migrated = true;
+            }
+        }
+
+        this.state.exercises.forEach(ex => {
+            const currentCat = ex.category || '';
+            const name = ex.name || '';
+            
+            // Se a categoria estiver vazia, for Geral, ou um dos músculos redundantes antigos
+            if (currentCat === '' || currentCat === 'Geral' || currentCat === 'Bicep' || currentCat === 'Tricep' || currentCat === 'Bíceps' || currentCat === 'Tríceps' || currentCat === 'Deltoides' || currentCat === 'Dorsal' || currentCat === 'Isquiotibiais' || currentCat === 'Quadríceps') {
+                const newCat = this.getCategoryFromExerciseName(name);
+                if (newCat !== currentCat) {
+                    ex.category = newCat;
+                    migrated = true;
+                }
+            }
+        });
+        
+        if (migrated) {
+            console.log('Exercícios migrados para as categorias corretas com sucesso!');
+            this.saveState();
+        }
+    }
+
     async importLocalBaseExercicios() {
         if (!confirm('Deseja importar a base de exercícios local (base_exercicios.json)? Novos exercícios serao adicionados aos existentes (sem duplicar nomes).')) return;
 
@@ -2982,7 +3048,7 @@ Equipa ${APP_NAME}`;
                         id: Date.now() + Math.floor(Math.random() * 1000),
                         name: name,
                         videoUrl: "",
-                        category: "Geral"
+                        category: this.getCategoryFromExerciseName(name)
                     });
                     addedCount++;
                 }
@@ -5010,6 +5076,7 @@ Equipa ${APP_NAME}`;
             'Abdominais': '🔥',
             'Alongamentos': '🧘',
             'Geral': '🏋️',
+            'Braços': '💪',
             'Bicep': '💪',
             'Tricep': '💪',
             // Músculos específicos (retrocompatibilidade)
@@ -5033,6 +5100,7 @@ Equipa ${APP_NAME}`;
             'Abdominais': '#f59e0b', // Amber
             'Alongamentos': '#84cc16', // Lime
             'Geral': '#94a3b8', // Slate
+            'Braços': '#f43f5e', // Rose
             'Bicep': '#f43f5e', // Rose
             'Tricep': '#ec4899', // Pink
             // Músculos específicos (retrocompatibilidade)
