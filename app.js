@@ -3891,7 +3891,7 @@ Equipa ${APP_NAME}`;
                         onclick="app.setViewingDayIdx(${dIdx}, '${clientId}')"
                         style="padding:10px 22px; font-size:0.85rem; border-radius:100px; min-width:120px; display:flex; align-items:center; gap:8px; justify-content:center; flex-shrink:0; font-weight:700; transition:all 0.3s ease;
                         background:${this.viewingDayIdx === dIdx ? 'var(--primary)' : 'rgba(255,255,255,0.05)'}; 
-                        color:${this.viewingDayIdx === dIdx ? '#fff' : 'var(--text-muted)'};
+                        color:${this.viewingDayIdx === dIdx ? 'var(--cfg-text-on-primary, #000000)' : 'var(--text-muted)'};
                         border: 1px solid ${this.viewingDayIdx === dIdx ? 'var(--primary)' : 'rgba(255,255,255,0.1)'};">
                         <i class="fas ${this.viewingDayIdx === dIdx ? 'fa-calendar-check' : 'fa-calendar-day'}" style="font-size:0.9rem;"></i>
                         <span style="text-transform:uppercase; letter-spacing:0.5px;">${day.title || `Plano ${String.fromCharCode(64 + (dIdx + 1))}`}</span>
