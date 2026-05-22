@@ -45,7 +45,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="SimpleFit">
-    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="icon" type="image/png" href="logo_pwa.png">
+    <link rel="apple-touch-icon" href="logo_pwa.png">
 
     <!-- Configurações base e injeção dinâmica do SimpleFit -->
     <script src="config.js"></script>
@@ -80,9 +81,6 @@
                 if (AppConfig.theme.textOnPrimary) {
                     root.style.setProperty('--cfg-text-on-primary', AppConfig.theme.textOnPrimary);
                 }
-                
-                const appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
-                if (appleIcon && AppConfig.logoPath) appleIcon.href = AppConfig.logoPath;
                 
                 const metaTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
                 if (metaTitle && AppConfig.appName) metaTitle.content = AppConfig.appName;
